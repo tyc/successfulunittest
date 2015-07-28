@@ -1,5 +1,5 @@
 # Chapter 1
-This is the second chapter.
+This is the first chapter.
 
 I am going to try some **bold** and then some *italic* text.
 
