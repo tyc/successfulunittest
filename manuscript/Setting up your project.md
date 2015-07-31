@@ -1,4 +1,5 @@
-# Chapter 2
+# Setting up your project.
+
 This is the second chapter.
 
 I am going to try some **bold** and then some *italic* text.
