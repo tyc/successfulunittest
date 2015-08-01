@@ -5,13 +5,20 @@ This is the second chapter.
 I am going to try some **bold** and then some *italic* text.
 
 
-	void main(void)
+	uint8 validateDigitalInput(uint8 in1, uint8 in2)
 	{
-		uint8 loop_index;
-		while (loop_index < 0)
+		uint8 retVal = 0;
+		
+		if (in1 != in2)
 		{
-			loop_index--;
+			retVal = in2;
 		}
+		else
+		{
+			retVal = in1;
+		}
+		
+		return (retVal);
 	}
 
 	
