@@ -87,3 +87,13 @@ This function has a branch count of two.
 ### << Add the code for the test case here >>.
 
 The test case `validateDigitalInput`passes in same values for `in1` and `in2`. This will only execute of one of the two branches. Branch coverage is only 50%. For the branch coverage to be at 100%, the test case must pass in different values of `in1` and `in2`. The execution of the branch with the different values will cause the branch coverage to 100%.   
+
+
+## condition coverage
+
+## condition coverage - example
+
+
+## path coverage
+
+## path coverage - example

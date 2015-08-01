@@ -15,4 +15,115 @@ It will show how to write code that is testable. To that end, it will suggest a 
 ||this is a test||thest||
 
 
+## Purpose of unit test
 
+## why is unit test on embedded so hard?
+
+## designing your code for unit test
+
+The code you are writing must be design for unit test in mind, otherwise it may be possible for your function to be untestable. If it is not able to be tested correctly, the correctness of its implementation will be in doubt.
+
+The key to writing code that can be tested is to keep the functions as simple as possible. The higher level of complexity, the harder it will be to test it. The complexity will be driven from the number of combinations and permutations the function can behave as its inputs changes A good rule of thumb for design is for the function to only do one function and to do it very well.
+
+The complexity of the functions is a good measure of how well it can be tested. Using the complexity model of Cyclomatic Complexity, a value of 10 is typically recognised as a safe limit. There are studies to show that a value of 10 has received substantial corrobating evidence. If it is higher than 10, it is recommended that the modules be broken down into smaller modules which will handle simpler functions.
+
+### non-blocking function
+
+A function that blocks is very difficult to test.  
+
+### reduce the number of parameters for the interface
+
+There are several ways which a function can take its values and return its values. For inputs, the parameters could be passed in as function arguments, or as a global variables. For return values, it could passed back via global variables, returned via the passed in pointer, or via the return type.
+
+	unsigned int voltage_reading;
+
+	uint8 getAdcRaw(uint8 channel, uint16 *raw_count)
+	{
+		uint8 retVal = ERET_OK;
+
+		if ((raw_count != NULL) &&
+			(channel < MAX_ADC_CHANNELS))
+		{
+			*raw_count = adcRaw[channel];
+			voltage_reading = *raw_count * VOLTAGE_SCALE_FACTOR;
+		}
+		else
+		{
+			retVal = ERET_BAD_ARG;
+		}
+
+		return retVal;
+	}
+	
+The above example shows there are four variables that must be tested for. Each of these variables has their own influence on how the function behaves. This example is relatively simple and easy to understand. 
+
+To contrast the complexity, the following function is a lot harder to test. The raw ADC reading was coverted to a voltage reading after it has been filtered. It is also ranged checked. 
+
+	unsigned int voltage_reading;
+
+	uint8 getAdcRaw(uint8 channel, uint16 *raw_count)
+	{
+		uint8 retVal = ERET_OK;
+
+		if ((raw_count != NULL) &&
+			(channel < MAX_ADC_CHANNELS))
+		{
+			*raw_count = adcRaw[channel];
+			voltage_reading = filterAdc(*raw_count) * VOLTAGE_SCALE_FACTOR;
+
+			if (voltage_reading > VOLTAGE_READ_MAX)
+			{
+				voltager_reading = VOLTAGE_READ_MAX;
+			}
+			else if (voltage_reading < VOLTAGE_READ_MIN)
+			{
+				voltage_reading = VOLTAGE_READ_MIN;
+			}
+		}
+		else
+		{
+			retVal = ERET_BAD_ARG;
+		}
+
+		return retVal;
+	}
+	
+The complexity can be reduced by encapsulating the filtering and range checking into the one function `filterAdc_to_Voltage`. The following example illustrate the change.
+
+	unsigned int voltage_reading;
+
+	uint16 filterAdc_to_Voltage(uint16 raw)
+	{
+		uint16 voltage = filterAdc(*raw_count) * VOLTAGE_SCALE_FACTOR;
+
+		if (voltage > VOLTAGE_READ_MAX)
+		{
+			voltager_reading = VOLTAGE_READ_MAX;
+		}
+		else if (voltage < VOLTAGE_READ_MIN)
+		{
+			voltage = VOLTAGE_READ_MIN;
+		}
+
+		return (voltage);
+	}
+
+	uint8 getAdcRaw(uint8 channel, uint16 *raw_count)
+	{
+		uint8 retVal = ERET_OK;
+
+		if ((raw_count != NULL) &&
+			(channel < MAX_ADC_CHANNELS))
+		{
+			*raw_count = adcRaw[channel];
+			voltage_reading = filterAdc_to_Voltage(*raw_count);
+		}
+		else
+		{
+			retVal = ERET_BAD_ARG;
+		}
+
+		return retVal;
+	}
+	
+Even though there is an extra function `filterAdc_to_Voltage` to test, both functions are simple enough that a high level of coverage is ensured.
