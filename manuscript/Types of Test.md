@@ -89,9 +89,48 @@ This function has a branch count of two.
 The test case `validateDigitalInput`passes in same values for `in1` and `in2`. This will only execute of one of the two branches. Branch coverage is only 50%. For the branch coverage to be at 100%, the test case must pass in different values of `in1` and `in2`. The execution of the branch with the different values will cause the branch coverage to 100%.   
 
 
-## condition coverage
+## modified condition / decoverage
 
-## condition coverage - example
+This coverage is commonly known as MC/DC. It
+
+## Condition coverage
+
+Condition converage measures that a decision has been made for all its possible outcomes at least once. This is particular important when the criteria is complex, or it consist of many different criteria for concluding on a decision.
+
+If the behavior is complex, the number of inputs into the tests could be large, and it makes it difficult to perform the tests or to formulate the correct test.
+
+A good strategy is to break the test into smaller parts.
+
+## Condition coverage - example
+
+Consider the following example, the function  `setAlarmHighSideDriver` is used to set a high side driver via FET1 when alarm is enable and the voltage is less than minimum threshold. 
+
+	uint8 setAlarmHighSideDriver(uint8 volt, bool enable)
+	{
+		if ((FALSE != enable) && 
+			(VALID_VOLT_MIN < volt)
+			)
+		{
+			setDO(FET1_HSD);
+		}
+		else
+		{
+			setDO(FET2_HSD);
+		}
+	}
+
+The coverage analysis would take the if clause and evaluate it for the four possible combinations.
+
+ | `FALSE != enable`  | `VALID_VOLT_MIN < volt` | final result of the && operation
+--- | :---: | :---: | :---:
+1st cond | false  | false | false
+2nd cond |false  | true | false
+3rd cond |true  | false | false
+4th cond |true  | true | true
+
+To get 100% condition coverage for this if clause, the values used in the test case must allow it to evaluate for all four conditions.
+
+
 
 
 ## path coverage

@@ -19,6 +19,14 @@ It will show how to write code that is testable. To that end, it will suggest a 
 
 ## why is unit test on embedded so hard?
 
+Testing functions of code that are targetted for an embedded system is hard, sometimes it is impossible to fully test it correctly. By definition, an embedded system is close, and getting data into it and out of it is not possible unless it has a human interface attached to it. The majority of embedded system are electronics modules that are found in your rice cookers, your washing machines, your cars and motorcycles and your aeroplanes. They are used in a wire variety of tasks such as controlling the cooking temperature for your rice, or monitoring the brake system in your car. These modules lack a human interface where data can be injected and data extracted to check if it is working correctly.
+
+The traditional way of testing embedded software is to build the software as a whole, programmed it into the non-volatile memory, put it into the target board and power it up. Stimulus would be injected and its behaviour noted. If the behaviour is the same as the expected, then it was give a pass, otherwise a fail is detected. This testing is quite unforgiving as it is error prone. The test execution is not consistent over the time as it is typically tested manaully. The capture of the results could also be not so accurate.
+
+By using a modular design in the architecture, it is possible to test the software in a much more control manner.
+
+## mocking units
+
 ## designing your code for unit test
 
 The code you are writing must be design for unit test in mind, otherwise it may be possible for your function to be untestable. If it is not able to be tested correctly, the correctness of its implementation will be in doubt.
