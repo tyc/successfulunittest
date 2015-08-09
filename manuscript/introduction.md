@@ -37,7 +37,51 @@ The complexity of the functions is a good measure of how well it can be tested. 
 
 ### non-blocking function
 
-A function that blocks is very difficult to test.  
+A function that blocks is very difficult to test. Unless there is a very good logical reason, blocking operation in your code design is a very bad idea.
+
+If you are unable to avoid blocking operation, the best way to test blocking operation is have unit test code within your software module to unblock the operation.
+
+A simple implementation of a round robin scheduler is a while(1) loop. Within the `while(1)` loop, it checks for the expiration of a timer tick. Once the expiration is confirmed, the function is called.
+
+ 
+	uint8 scheduler(void)
+	{
+	#ifndef(UNITTEST)	
+		while(1)
+	#endif		
+		{
+			if (isTimeTick(1ms) != FALSE)
+			{
+				function[function_index]();
+				function_index++;
+				function_index %= FUNCTION_MAX;			
+			}
+		}
+	}
+
+
+The unit test harness calls `scheduler()` a number of times to check on its behaviour. The `while(1)` is abstracted by conditionally removed by the compiled time macro of `UNITTEST`.
+
+An alternative is to use the `break` statement just before the closing bracket to the `while(1)` loop. The alternative has less risk than the obvious solution as it does not remove any code from being tested. It adds the `break` statement. The obvious solution removes the `while(1)` for the unit test.
+
+	uint8 scheduler(void)
+	{
+		while(1)
+		{
+			if (isTimeTick(1ms) != FALSE)
+			{
+				function[function_index]();
+				function_index++;
+				function_index %= FUNCTION_MAX;			
+			}
+	#ifndef(UNITTEST)	
+			break;
+	#endif		
+		}
+	}
+
+
+
 
 ### reduce the number of parameters for the interface
 

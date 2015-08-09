@@ -13,3 +13,20 @@ uint8 setAlarmHighSideDriver(uint8 volt, bool enable)
 		setDO(FET2_HSD);
 	}
 }
+
+
+
+uint8 scheduler(void)
+{
+#ifndef(UNITTEST)
+	while(1)
+#endif
+	{
+		if (isTimeTick(1ms) != FALSE)
+		{
+			function[function_index]();
+			function_index++;
+			function_index %= FUNCTION_MAX;
+		}
+	}
+}
