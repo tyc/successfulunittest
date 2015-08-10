@@ -1,5 +1,29 @@
 # Introduction
 
+## why am I writing this book
+
+Ever since I have graduated from the Royal Melbourne Institute of Technology in 1992, I have been working with embedded systems. Living in Australia at the time, most engineering shop practicing in this form of specialise artform are small to medium size business. Their engineering teams are small and resource hungry.
+
+My first engineering team was a small team of three engineers. I was a graduate engineer, tasked with writing code for an embedded system. It was for an 8051 derivative, controlling a vacuum replenishing system. At that time, the Australian Government just past a law banning ozone destroying gases in car's air conditioner system. So this product was such out the banned gas in air conditioner and pump the approved gas into it. 
+
+The small engineering team did a very back of an envelope design, coded it up, did some rudimentary testing and shipped it. The project had all sorts of problems with it, and it caused the delivery to be late and over budget. The project finally shipped, but with plenty of bugs and we lost a customer as result of it.
+
+From that disastarous first project and the many projects that followed it, I learned to shipped a project on time, on budget and on spec, careful planning must ensure. A robust testing strategy must be part of that plan. One of the corner stones of the testing strategy is the unit test. With a good unit test plan, the whole project will still has the potential to fall down. 
+
+I usually think of about this as a getting all the small bricks that is part of a three storey house correct. The right type of bricks must be specified, and there must be test results that the bricks meet the specifications. Once I am satisfy with the results, then I can safely proceed to build the house. If the bricks are not properly specified or tested, the house has the potential to collapse as the bricks is overstressed and disintegrate.
+
+In writing this book, I have focus on the   
+
+## who should read this book
+
+## I am assuming this about you
+
+## how to use this book
+
+## tools mentioned in this book
+
+
+
 During the construction of code, have you ever wonder if you code works without testing with the other code, or how close your code is what you are designing against. I have always wonder about the same thing. In my formative years after graduating from University in 1992, the notion doing unit testing was quite alien. It is even more so if it is applied to the world of practicing software engineering in the embedded space.
 
 With the explosion of the internet and the all the technologies that go with enabling the thousands of apps, applying unit test to your code is occuring almost by default. However, in the embedded space, the practice is not so. It is almost as if it is not needed.
