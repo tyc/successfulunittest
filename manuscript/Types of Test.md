@@ -11,11 +11,7 @@ Each type of coverage aims to cover the code's functionality as well as the code
 
 ## Instruction coverage
 
-Instruction coverage or statement coverage is a measure of how much of the code was tested. If the measure is less than 100%, not all the C code in your function was executed during the testing.
 
-The measure for instruction coverage is whether the C code is executed during the test. If the code was executed at least once, it is marked as executed.
-
-The coverage does not matter how many times the C code have been executed. It also does not care if the code has correct behaving.
 
 ## Instruction coverage - example
 

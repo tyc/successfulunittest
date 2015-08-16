@@ -1,6 +1,10 @@
 Table of Contents idea
 
 1. Introduction - done
+1. Basic Concepts
+ 1. Coverage
+ 1. Test Harness
+ 1. Traceability
 1. Get Started
  1. Tools
  1. Resources
@@ -15,6 +19,6 @@ Table of Contents idea
  1. Debugging
 1. Capturing Test Results
  1. Intepretation
- 1. 
+1. Team's impact 
 
 
