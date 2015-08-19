@@ -37,7 +37,7 @@ For example, if the task is to write a driver for the managing a PWM output, the
 
 Those five requirements would define the behaviour of the PWM driver. Any other aspects of the driver that are not specified are not tested. For example, the requirements could specified the  PWM signal behaviour when the microcontroller enters sleep mode. During analysis of the reqiurements, this gap would hopefully be identified and closed. 
 
-Noticed that the requirements also specified non functional requirements, but this requirenments are not tested using unit tests.
+Notice that the requirements also specified non functional requirements, but this requirenments are not tested using unit tests.
 
 Once all the requirements are specified, it is reviewed with the test engineer. The test engineer should review it and ask if the requiremetns can be tested. If it can't be tested, usually the requirements is vague and is too general. The requirements will need to be re-written and its behaviour better defined. In most cases, the test engineer create the unit test is also the development engineer. So this iteration loop is quite quick.
 
