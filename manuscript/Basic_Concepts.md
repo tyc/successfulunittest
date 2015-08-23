@@ -8,16 +8,20 @@ Basic concepts does not just cover basic concepts in unit test, but basic concep
 
 Before you start writing a single test script, you must have a clear understanding of what is correct behaviour. The correct behaviour could be dependent upon what the project aim. 
 
-The usual manner is for the requirements of your software module defined. The definitions will be used as what is defined as correct behaviour. If it meets that requirements, then the software module is classified as hvaing correct behaviour.
+The usual manner is for the requirements of your software module defined. The definitions will be used as what is defined as correct behaviour. If it satisfies those requirements, then the software module is classified as having correct behaviour.
 
-There are several ways of checking behaviour is correct. Some of the main points to look for are:
+There are several ways of checking behaviour is correct. Some of the main characteristics to look for are:
 
 * lower level functions must be called in a specified order
 * the number of call to lower level function is counted. If it is called too many times, it is a sign of incorrect implementation.
 * The returned values matches the expected. Returned values can be obtained via the returned type, or the passed in pointer.
 * The correct lower level code is called with the correct parameters.
 
-Correct behaviour about timing and interaction other modules are not considered in unit tests. Dynamic behaviour and interactive behaviour are tested for integration tests.
+Correct behaviour about timing and interaction other modules are not considered in unit tests. Dynamic behaviour and interactive behaviour are tested for integration tests. This include memory consumption tests.
+
+Correct behaviour is also checked by other tools that focuses on other aspects of the software module. For example, a tool is used to check that the code matches the coding guidlines of the project, or that the software module is structured according to the architecture requirements. This discussion is outside the scope of this book. 
+
+The majority of the tools uses the assert() macro to help with notifying software tester that a non-conformity was detected. The assert() macro takes the test result and the expected result, a non-match flags the error. A more complex assert() macro will also display a message to give some context to the software tester or the software debugger why an error was detected. 
 
 ##Requirements
 
@@ -27,13 +31,13 @@ There several level of requirements used when describing the software. For the s
 
 For example, if the task is to write a driver for the managing a PWM output, the following items would define the behaviour
 
-    The PWM driver shall only allow a frequency from 50Hz to 500Hz.
-    The PWM driver shall only allow a duty cycle from 10% to 90%.
-    When PWM driver receives request out of the allowable frequencies and duty cycles, it shall reject the request and the output signal does not change.
-    The amplitude of the PWM signal is at logic level of the microcontroller.
-    The tolerance of the PWM signal is 5% of the requested.
-    The PWM driver shall not consume more than 1KByte of code space.
-    The PWM driver shall not consumre more than 5% of its allocate time slot.  
+    req_PWM1: The PWM driver shall only allow a frequency from 50Hz to 500Hz.
+    req_PWM2: The PWM driver shall only allow a duty cycle from 10% to 90%.
+    req_PWM3: When PWM driver receives request out of the allowable frequencies and duty cycles, it shall reject the request and the output signal does not change.
+    req_PWM5:The amplitude of the PWM signal is at logic level of the microcontroller.
+    req_PWM5:The tolerance of the PWM signal is 5% of the requested.
+    req_PWM6:The PWM driver shall not consume more than 1KByte of code space.
+    req_PWM7:The PWM driver shall not consumre more than 5% of its allocate time slot.  
 
 Those five requirements would define the behaviour of the PWM driver. Any other aspects of the driver that are not specified are not tested. For example, the requirements could specified the  PWM signal behaviour when the microcontroller enters sleep mode. During analysis of the reqiurements, this gap would hopefully be identified and closed. 
 
@@ -42,6 +46,8 @@ Notice that the requirements also specified non functional requirements, but thi
 Once all the requirements are specified, it is reviewed with the test engineer. The test engineer should review it and ask if the requiremetns can be tested. If it can't be tested, usually the requirements is vague and is too general. The requirements will need to be re-written and its behaviour better defined. In most cases, the test engineer create the unit test is also the development engineer. So this iteration loop is quite quick.
 
 The code you create implements functionality that behaves as per the requirements. The unit tests is code that checks if the implementation creates functionality that meets the requirements. This is why getting the requirements right is important as it has enormous impact on the implementation and the unit test if the requirements are not complete or not right.
+
+One important character of requirements is that each requirements are assigned a unique ID. In the 7 reqiurements, I have used nomeclature of software module name, post fixed by a `req`. This makes it easy for each requirements to be identified. Its ID could also be a bit more complex if versioning or status are to be attached to its ID, but I think it over complicates the naming structure and does not add much value.
 
 ##Version Control
 
@@ -67,7 +73,7 @@ The coverage is calculated by the number lines of code executed divided by the n
 
 Sometimes, your coverage tool measures this metric at assembly language level. It takes a measure of all the addresses which are occupied with code, and logs all the addresses which have been executed. This is a more accurate measure but it is highly dependent on the architecture and compiler and platform used. However, to keep you code platform independent, your test results should also be platform independent as well.
 
-###Branch Coverage
+### Branch Coverage
 
 Branch coverage is a measure of whether branches of code was executed or not. It is relates to decision making and the branches it takes when those decision are made. The `if` clauses are main focus here.
 
@@ -79,7 +85,17 @@ During the execution of the test case, if a branch executed, it is marked as exe
 
 The branch coverage does not care about if the correct decision was made to execute a particular branch. It cares if the branch was executed or not. The correctness of the branch execution is determined in a different manner.
 
-The purpose of branch coverage is used as a metric to check if your test inputs are correctly selected. If the test inputs only yields a branch coverage of 50% on an if branch, that means that your selection of test inputs is not wide enough.
+One of the purpose of branch coverage is used as a metric to check if your test inputs are correctly selected. If the test inputs only yields a branch coverage of 50% on an if branch, that means that your selection of test inputs is not wide enough.
+
+### Functional coverage
+Functional coverage is a measure that the unit test covers the functional requiremetns of the software module. If the coveage is less than 100%, it shows that the unit test does not cover all the functions to be achieve by the software module. Only functional requirements are counted for functional coverage. Non-functional requirements are outside the scope of this measurement. However, they should be covered through other mechanism such as integration testing or code inspection. 
+
+The functional coverage is measured by dividing the number of requirements that are covered by the unit tests by the total number of requirements. From this equation, it is clear that a coverage of less than 100% shows that not all the functionality is tested. 
+
+Functional coverage occurs during the planning stage of the your software module. When the software module is being planned, the unit test cases should be planned at the same time.
+
+For requirements that are not covered by the unit tests, it may be only to test these requirements in the integration tests because it is testing dynamic behaviour. 
+
 
 
 ###Modified Condition Decision Coverage
