@@ -6,7 +6,7 @@ I graduated from the Royal Melbourne Institute of Technology in 1992. Since then
 
 My first engineering team was a small team of three engineers. I was a graduate engineer, tasked with writing code for an embedded system. It was for an 8051 derivative from Philips controlling a vacuum replenishing system. At that time, the Australian government just passed a law banning ozone destroying gases, especially from the car’s air conditioner system. So this product would suck out the banned gas in the AC and pump the approved gas into it.
 
-The small engineering team did a “back of an envelope” design. We coded it up, did some rudimentary testing and shipped it. The project struggled with all sorts of problems. The software was buggy at all different levels. It caused the delivery to be late and over budget. The project finally shipped, but with plenty of bugs and we lost a customers as result. It was a depressing lesson for me.
+The small engineering team did a back of an envelope design. We coded it up, did some rudimentary testing and shipped it. The project struggled with all sorts of problems. The software was buggy at all different levels. It caused the delivery to be late and over budget. The project finally shipped, but with plenty of bugs and we lost a customers as result. It was a depressing lesson for me.
 
 From that disastrous first project, and the many projects that followed it, I learned to ship a project on time, on budget and on spec. Careful planning must be ensured. A robust testing strategy must be part of that plan. One of the corner stones of the testing strategy is the unit test. With a good unit test plan, the whole project still has the potential to fall down, but that potential is much less.
 
