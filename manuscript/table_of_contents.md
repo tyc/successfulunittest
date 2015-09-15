@@ -2,11 +2,11 @@ Table of Contents idea
 
 1. Introduction - done
 1. Basic Concepts
- 1. Coverage
- 1. Test Harness
- 1. Traceability
+ 1. Coverage - done
+ 1. Test Harness - done
+ 1. Traceability - done
 1. Get Started
- 1. Tools
+ 1. Tools - done
  1. Resources
 1. Design for testing
  1. Traceability
