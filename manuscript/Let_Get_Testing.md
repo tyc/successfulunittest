@@ -48,4 +48,36 @@ The design focus of the functions is to have a good set of functions to affect t
 
 To develop a test case, a good understanding of the environment which the software module is going to be used in is crucial. Without this understanding, the inputs will be pure nonsense to the testing.
 
- 
+Taking the function `init_pwm_if()`, it returns a bool_t of TRUE if it was initialised successfully. The truth table for its operation is 
+
+| `pwm_if_channel_t` | `bool_t`   |
+| ------------------ |:----------:|
+| `PWM_CH0 - 1`      | `FALSE`    |
+| `PWM_CH0`          | `TRUE`     |
+| `PWM_CH0 + 1`      | `TRUE`     |
+| `PWM_CH_MAX - 1`   | `TRUE`     |
+| `PWM_CH_MAX`       | `FALSE`    |
+| `PWM_CH_MAX + 1`   | `FALSE`    |
+
+The left hand column is the input values, and the right hand side is the return value. This truth table shows that the whole range of possible values are used. It starts from the lowest value of `PWM_CH0`, up to the maximum value of `PWM_CH_MAX`. With the C program language being used, it is based with index starting at 0. This is why a `FALSE` is returned when the input is PWM_CH_MAX. A good test is to test 1 item on either of the maximum and minimum value. This would catch the one-off bugs.
+
+The function description of the `init_pwm_if()` indicates the lower level MCAL is also initialised. In the unit test, a mock function is used to simulate the initialisation of the PWM peripheral. In your mock function, a flag is set to indicate that it has been called. There could also be a counter in the mock function to count the number of times it has been called. This is check that the PWM peripheral is initialised the correct number of times.
+
+So far, we have only consider inputs coming into the software module via the caller. There is also inputs coming into the software module on lower level functions. As mentioned before, it calls the microcontroller's peripheral. In this case, it calls `init_pwm()` to initialise peripheral. `init_pwm()` returns a boolean. It has the function prototype of
+
+    bool_t init_pwm(pwm_channel_t channel);
+    
+The truth table now becomes
+
+| `inputs1`          | input2                 | output       |
+| `pwm_if_channel_t` | return from init_pwm() | `bool_t`     |
+| ------------------ |:----------------------:|:------------:|
+| `PWM_CH0 - 1`      | `TRUE`     		      | `FALSE`      |
+| `PWM_CH0`          | `TRUE`                 | `TRUE`       |
+| `PWM_CH0 + 1`      | `TRUE`                 | `TRUE`       |
+| `PWM_CH_MAX - 1`   | `TRUE`                 | `TRUE`       |
+| `PWM_CH_MAX`       | `TRUE`                 | `FALSE`      |
+| `PWM_CH_MAX + 1`   | `TRUE`                 | `FALSE`      |
+| `don't care`       | `TRUE`                 | `FALSE`      |
+
+Here the two left most columns are the inputs, and the right column is the 
