@@ -50,6 +50,7 @@ To develop a test case, a good understanding of the environment which the softwa
 
 Taking the function `init_pwm_if()`, it returns a bool_t of TRUE if it was initialised successfully. The truth table for its operation is 
 
+| input1             | output     |
 | `pwm_if_channel_t` | `bool_t`   |
 | ------------------ |:----------:|
 | `PWM_CH0 - 1`      | `FALSE`    |
@@ -69,15 +70,77 @@ So far, we have only consider inputs coming into the software module via the cal
     
 The truth table now becomes
 
-| `inputs1`          | input2                 | output       |
-| `pwm_if_channel_t` | return from init_pwm() | `bool_t`     |
+| input1             | input2                 | output       |
+| `channel`          | return from init_pwm() | `bool_t`     |
 | ------------------ |:----------------------:|:------------:|
 | `PWM_CH0 - 1`      | `TRUE`     		      | `FALSE`      |
 | `PWM_CH0`          | `TRUE`                 | `TRUE`       |
 | `PWM_CH0 + 1`      | `TRUE`                 | `TRUE`       |
 | `PWM_CH_MAX - 1`   | `TRUE`                 | `TRUE`       |
 | `PWM_CH_MAX`       | `TRUE`                 | `FALSE`      |
-| `PWM_CH_MAX + 1`   | `TRUE`                 | `FALSE`      |
-| `don't care`       | `TRUE`                 | `FALSE`      |
+| `PW‚M_CH_MAX + 1`   | `TRUE`                 | `FALSE`      |
+| `don't care`       | `FALSE`                | `FALSE`      |
 
-Here the two left most columns are the inputs, and the right column is the 
+When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if()` is always a FALSE. It does not matter what value is passed into `init_pwm_if()`, this is indicated as a `don't care`.
+
+## Test Script
+
+The test script is the implementation for the test case. To implemented, the test case should be close to complete.
+
+```C
+
+bool_t init_pwm_return_value = FALSE;
+
+/** Mock function for init_pwm() */
+bool_t init_pwm(pwm_channel_t channel)
+{
+	bool_t retVal = FALSE;
+	
+	if (channel < PWM_CH_MAX)
+	{
+		retVal = init_pwm_return_value;
+	}
+	
+	return (retVal);
+}
+
+/** test case for init_pwm_if() */
+void init_pwm_if_test_case(void)
+{
+	uint8 index;
+	
+	typedef struct 
+	{
+		/* inputs */
+		pwm_channel_t input1;
+		bool_t input2;
+		
+		/* output */
+		bool_t output;
+	} test_data_t;
+	
+	test_data_t test_dat[] =
+	{
+		{PWM_CH0-1, 	TRUE, FALSE},
+		{PWM_CH0,   	TRUE, TRUE},
+		{PWM_CH0+1, 	TRUE, TRUE},
+		{PWM_CH_MAX-1,  TRUE, TRUE},
+		{PWM_CH_MAX, 	TRUE, FALSE},
+		{PWM_CH_MAX+1  	TRUE, FALSE},
+		{PWM_CH0+1, 	FALSE, FALSE},
+	};
+	
+	for ( 	index = 0;
+			index < (sizeof(test_data)/sizeof(test_data[0]));
+			index++
+		)
+	{
+		bool_t output;
+		init_pwm_return_value = test_data[index].input2;
+		output = init_pwm_if(test_data[index].input1);
+		
+		assert(output == test_data[index].output);
+	}
+}
+```
+
