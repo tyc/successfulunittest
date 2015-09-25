@@ -6,7 +6,7 @@ Let's say that I need to write a software stack for controlling the PWM signal o
 
 In a typical application, the software would be used to regulate the speed of the DC motor by continuously adjust the duty cycle. The adjustments is based on the measured speed of the DC motor.
 
-To ease the development of the software, it is a good idea to break the software into two layers. The layer that is closer to the hardware is known as the device driver, and the layer above it is known as the manager. Together, they are known as a software stack.
+To ease the development of the software, it is a good idea to break the software into two layers. The layer that is closer to the hardware is known as the device driver, and the layer above it is known as the manager or the handler. Together, they are known as a software stack. In a more complex softare stack, there could be more software modules or layers.
 
 ## Requirements
 
@@ -112,11 +112,11 @@ void init_pwm_if_test_case(void)
 	typedef struct 
 	{
 		/* inputs */
-		pwm_channel_t input1;
-		bool_t input2;
+		pwm_channel_t channel;
+		bool_t init_pwm_return_value;
 		
 		/* output */
-		bool_t output;
+		bool_t expected_init_OK;
 	} test_data_t;
 	
 	test_data_t test_dat[] =
@@ -135,12 +135,44 @@ void init_pwm_if_test_case(void)
 			index++
 		)
 	{
-		bool_t output;
-		init_pwm_return_value = test_data[index].input2;
-		output = init_pwm_if(test_data[index].input1);
+		bool_t expected_init_OK;
+		init_pwm_return_value = test_data[index].init_pwm_return_value;
+		expected_init_OK = init_pwm_if(test_data[index].channel);
 		
-		assert(output == test_data[index].output);
+		assert(expected_init_OK == test_data[index].expected_init_OK);
 	}
 }
 ```
+
+So pattern for writing a unit test is pretty straight forward. The concept is to iterate a set of inputs and check that the response from it is the same as the expected. The test code above has this pattern.
+
+So breaking the test script to its parts, at the start of the test script, a struct is created to contain the inputs and the expected output. Give the members meaningful names rather than input1, input2 and input3. The meaningful names will allow the test code to be read easily. In the example, there are two inputs and one output. Ensure that the member the same type of the tested parameters. The struct is local to this particular test case. For each test case, create a struct suitable for your test.
+
+	typedef struct 
+	{
+		/* inputs */
+		pwm_channel_t channel;
+		bool_t init_pwm_return_value;
+		
+		/* output */
+		bool_t expected_init_OK;
+	} test_data_t;
+
+The variable `init_pwm_return_value` is used to configure the return value of the mocked function. In this case, the mocked function `init_pwm()` will return the value `init_pwm_return_value`. So make sure that the type of `init_pwm_return_value` has the same type as the return type of `init_pwm()`.
+
+The construction of the actual test code should be next. It is constructed as a `for` loop where the test data is iterated over the test code.
+ 
+	for ( 	index = 0;
+			index < (sizeof(test_data)/sizeof(test_data[0]));
+			index++
+		)
+	{
+		bool_t expected_init_OK;
+		init_pwm_return_value = test_data[index].init_pwm_return_value;
+		expected_init_OK = init_pwm_if(test_data[index].channel);
+		
+		assert(expected_init_OK == test_data[index].expected_init_OK);
+	}
+
+The code within the `for` loop does the actual testing. At the start of the loop, it configures the mocked objects for the return values, calls the function under tests. It checks that the return values are correct. The checking is via the `assert()` macro.
 
