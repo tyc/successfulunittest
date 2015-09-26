@@ -4,9 +4,9 @@ I will go through the concepts used in unit test by going through an example.
 
 Let's say that I need to write a software stack for controlling the PWM signal out of the microcontroller. The PWM signal is used to drive a DC motor. The duty cycle of the PWM signal. The larger the duty cycle, the faster the DC motor will run.
 
-In a typical application, the software would be used to regulate the speed of the DC motor by continuously adjust the duty cycle. The adjustments is based on the measured speed of the DC motor.
+In a typical application, the software would be used to regulate the speed of the DC motor by continuously adjust the duty cycle. The adjustments are based on the measured speed of the DC motor.
 
-To ease the development of the software, it is a good idea to break the software into two layers. The layer that is closer to the hardware is known as the device driver, and the layer above it is known as the manager or the handler. Together, they are known as a software stack. In a more complex softare stack, there could be more software modules or layers.
+To ease the development of the software, it is a good idea to break the software into two layers. The layer that is closer to the hardware is usually known as the device driver, and the layer above it is known as the manager or the handler. Together, they are known as a software stack. In a more complex software stack, there could be more software modules or layers.
 
 ## Requirements
 
@@ -18,17 +18,21 @@ Let's start by laying out the requirements so that we know what is to be built.
     req_PWM4: The amplitude of the PWM signal is at logic level of the microcontroller.
     req_PWM5: The tolerance of the PWM signal is 5% of the requested.
     req_PWM6: The PWM signal will update its speed based upon the measured speed of the DC motor.
-    req_PWM7: The speed of the DC motor is to be regulated to 5% of the intended speed. The relationship between the RPM speed of the motor to duty cycle is PWM speed is the RPM increase at 75% of duty cycle.    
-    req_PWM8: The PWM driver shall not consume more than 1KByte of code space.
-    req_PWM9: The PWM driver shall not consume more than 5% of its allocate time slot.
+    req_PWM7: The speed of the DC motor is to be regulated to 5% of the intended speed. The relationship between the RPM speed of the motor to duty cycle is PWM speed is the RPM increase at 75% of duty cycle. 
+    req_PWM9: The PWM driver shall not consume more than 1KByte of code space.
+    req_PWM10: The PWM driver shall not consume more than 5% of its allocate time slot.
     
 This set of requirements are only developed to show the benefit of unit tests. Some of the may not actually work in a real world software stack.
+
+Looking closer at the requirements, the majority of them can be implemented in the manager. The frees up the implementation of the device driver from any requirements. However, it is should keep the basic software engineering practice such as keeping it as lean as possible, and also as simple as possible.
+
+`req_PWM8` and `req_PWM9` are not functional requirements, so it can not be tested during the unit tests. Furthermore, it is highly dependent on platform it is deployed upon, and the compiler used.
 
 Once the requirements are agreed by all the parties, including the customer, requirements engineer, the software validation engineer and the hardware engineering team, the design and the test cases can be develop for each requirement. In many cases, getting agreement on the requirements is a long process. The agreement may not even be reached when the design is needed. However, do let that hold you back. After you have designed a few software modules, you will get a sense of basic structure of a software stack.
 
 Above its functional requirements, there will also be architecture requirements for the software module to meet.
 
-## Design
+## Design on `init_pwm_if()`
 
 For the purpose of this book, the following functions to the PWM software stack are created. Here are their function prototypes.
 
@@ -44,7 +48,7 @@ So for the function `get_pwm_if()`, you know that it get some data or informatio
 
 The design focus of the functions is to have a good set of functions to affect the driver's characteristics. Here a good set also means not to provide too much functionality. The higher level of functionality, the more complex it is, and the higher risk level. 
 
-## Test Case Design
+## Test Case Design for `init_pwm_if()`
 
 To develop a test case, a good understanding of the environment which the software module is going to be used in is crucial. Without this understanding, the inputs will be pure nonsense to the testing.
 
@@ -73,17 +77,35 @@ The truth table now becomes
 | input1             | input2                 | output       |
 | `channel`          | return from init_pwm() | `bool_t`     |
 | ------------------ |:----------------------:|:------------:|
-| `PWM_CH0 - 1`      | `TRUE`     		      | `FALSE`      |
+| `PWM_CH0 - 1`      | `don't care`           | `FALSE`      |
 | `PWM_CH0`          | `TRUE`                 | `TRUE`       |
 | `PWM_CH0 + 1`      | `TRUE`                 | `TRUE`       |
 | `PWM_CH_MAX - 1`   | `TRUE`                 | `TRUE`       |
-| `PWM_CH_MAX`       | `TRUE`                 | `FALSE`      |
-| `PW‚M_CH_MAX + 1`   | `TRUE`                 | `FALSE`      |
+| `PWM_CH_MAX`       | `don't care`           | `FALSE`      |
+| `PW‚M_CH_MAX + 1`  | `don't care`           | `FALSE`      |
 | `don't care`       | `FALSE`                | `FALSE`      |
 
 When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if()` is always a FALSE. It does not matter what value is passed into `init_pwm_if()`, this is indicated as a `don't care`.
 
-## Test Script
+The requirements for `init_pwm_if()` is that it is must only be initialised once before it it is de-initialised. Further initialisation is forbidden. In a real world example, if the PWM is initialsed when it is operating could cause serious damage to if it was controlling machinery. So it is critical if there is a catch in the code for this scenario. Internal of `init_pwm_if()` is a flag that indicates if initialisation had occurred. If it is TRUE when initialisation is called, `init_pwm_if()` will return a FALSE.
+
+The truth table now becomes
+
+| input1             | input2                 | input3             | output       |
+| `channel`          | return from init_pwm() | flag for reinit    | `bool_t`     |
+| ------------------ |:----------------------:|:------------------:|:------------:|
+| `PWM_CH0 - 1`      | `don't care`           | `FALSE`            | `FALSE`      |
+| `PWM_CH0`          | `TRUE`                 | `FALSE`            | `TRUE`       |
+| `PWM_CH0 + 1`      | `TRUE`                 | `FALSE`            | `TRUE`       |
+| `PWM_CH_MAX - 1`   | `TRUE`                 | `FALSE`            | `TRUE`       |
+| `PWM_CH_MAX`       | `don't care`           | `FALSE`            | `FALSE`      |
+| `PW‚M_CH_MAX + 1`  | `don't care`           | `FALSE`            | `FALSE`      |
+| `don't care`       | `FALSE`                | `FALSE`            | `FALSE`      |
+| `don't care`       | `dont't care`          | `TRUE`             | `FALSE`      |
+
+
+
+## Test Script for `init_pwm_if()`
 
 The test script is the implementation for the test case. To implemented, the test case should be close to complete.
 
@@ -95,9 +117,12 @@ bool_t init_pwm(pwm_channel_t channel)
 {
 	bool_t retVal = FALSE;
 	
-	if (channel < PWM_CH_MAX)
+	if (init_pwm_reinit_flag == FALSE)
 	{
-		retVal = init_pwm_return_value;
+		if (channel < PWM_CH_MAX)
+		{
+			retVal = init_pwm_return_value;
+		}
 	}
 	
 	return (retVal);
@@ -113,6 +138,7 @@ void init_pwm_if_test_case(void)
 		/* inputs */
 		pwm_channel_t channel;
 		bool_t init_pwm_return_value;
+		bool_t init_pwm_reinit_flag;
 		
 		/* output */
 		bool_t expected_init_OK;
@@ -120,13 +146,14 @@ void init_pwm_if_test_case(void)
 	
 	test_data_t test_dat[] =
 	{
-		{PWM_CH0-1, 	TRUE, FALSE},
-		{PWM_CH0,   	TRUE, TRUE},
-		{PWM_CH0+1, 	TRUE, TRUE},
-		{PWM_CH_MAX-1,  TRUE, TRUE},
-		{PWM_CH_MAX, 	TRUE, FALSE},
-		{PWM_CH_MAX+1  	TRUE, FALSE},
-		{PWM_CH0+1, 	FALSE, FALSE},
+		{PWM_CH0-1, 	TRUE, FALSE, FALSE},
+		{PWM_CH0,   	TRUE, FALSE, TRUE},
+		{PWM_CH0+1, 	TRUE, FALSE, TRUE},
+		{PWM_CH_MAX-1,  TRUE, FALSE, TRUE},
+		{PWM_CH_MAX, 	TRUE, FALSE, FALSE},
+		{PWM_CH_MAX+1  	TRUE, FALSE, FALSE},
+		{PWM_CH0+1, 	FALSE, FALSE, FALSE},
+		{PWM_CH0+1, 	FALSE, TRUE, FALSE},
 	};
 	
 	for ( 	index = 0;
@@ -136,9 +163,10 @@ void init_pwm_if_test_case(void)
 	{
 		bool_t expected_init_OK;
 		init_pwm_return_value = test_data[index].init_pwm_return_value;
+		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
 		expected_init_OK = init_pwm_if(test_data[index].channel);
 		
-		assert(expected_init_OK == test_data[index].expected_init_OK);
+		assert_true(expected_init_OK == test_data[index].expected_init_OK);
 	}
 }
 ```
@@ -152,6 +180,7 @@ So breaking the test script to its parts, at the start of the test script, a str
 		/* inputs */
 		pwm_channel_t channel;
 		bool_t init_pwm_return_value;
+		bool_t init_pwm_reinit_flag;
 		
 		/* output */
 		bool_t expected_init_OK;
@@ -159,7 +188,9 @@ So breaking the test script to its parts, at the start of the test script, a str
 
 The variable `init_pwm_return_value` is used to configure the return value of the mocked function. In this case, the mocked function `init_pwm()` will return the value `init_pwm_return_value`. So make sure that the type of `init_pwm_return_value` has the same type as the return type of `init_pwm()`.
 
-The construction of the actual test code should be next. It is constructed as a `for` loop where the test data is iterated over the test code.
+The variable `init_pwm_reinit_value` is used to configure the mocked function if it has been initialised or not. If it is set to TRUE, the mocked function will behave as if it has been initalised.
+
+The construction of the actual test code should be next. It is constructed as a `for` loop where the test data is iterated over the test code. It iterates for the entire dataset.
  
 	for ( 	index = 0;
 			index < (sizeof(test_data)/sizeof(test_data[0]));
@@ -169,9 +200,10 @@ The construction of the actual test code should be next. It is constructed as a 
 		bool_t expected_init_OK;
 		init_pwm_return_value = test_data[index].init_pwm_return_value;
 		expected_init_OK = init_pwm_if(test_data[index].channel);
+		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
 		
-		assert(expected_init_OK == test_data[index].expected_init_OK);
+		assert_true(expected_init_OK == test_data[index].expected_init_OK);
 	}
 
-The code within the `for` loop does the actual testing. At the start of the loop, it configures the mocked objects for the return values, calls the function under tests. It checks that the return values are correct. The checking is via the `assert()` macro.
+The code within the `for` loop does the actual testing. At the start of the loop, it configures the mocked objects for the return values, calls the function under tests. It checks that the return values are correct. The checking is via the `assert_true()` macro, an assertion is generated if the test clause evaluates to a FALSE. 
 
