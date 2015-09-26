@@ -87,8 +87,7 @@ When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if
 
 The test script is the implementation for the test case. To implemented, the test case should be close to complete.
 
-```C
-
+```
 bool_t init_pwm_return_value = FALSE;
 
 /** Mock function for init_pwm() */
