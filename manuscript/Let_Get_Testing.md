@@ -1,4 +1,4 @@
-# Let gets testing
+# Lets start testing
 
 I will go through the concepts used in unit test by going through an example. 
 
@@ -82,7 +82,7 @@ The truth table now becomes
 | `PWM_CH0 + 1`      | `TRUE`                 | `TRUE`       |
 | `PWM_CH_MAX - 1`   | `TRUE`                 | `TRUE`       |
 | `PWM_CH_MAX`       | `don't care`           | `FALSE`      |
-| `PW‚M_CH_MAX + 1`  | `don't care`           | `FALSE`      |
+| `PWM_CH_MAX + 1`   | `don't care`           | `FALSE`      |
 | `don't care`       | `FALSE`                | `FALSE`      |
 
 When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if()` is always a FALSE. It does not matter what value is passed into `init_pwm_if()`, this is indicated as a `don't care`.
@@ -99,7 +99,7 @@ The truth table now becomes
 | `PWM_CH0 + 1`      | `TRUE`                 | `FALSE`            | `TRUE`       |
 | `PWM_CH_MAX - 1`   | `TRUE`                 | `FALSE`            | `TRUE`       |
 | `PWM_CH_MAX`       | `don't care`           | `FALSE`            | `FALSE`      |
-| `PW‚M_CH_MAX + 1`  | `don't care`           | `FALSE`            | `FALSE`      |
+| `PWM_CH_MAX + 1`   | `don't care`           | `FALSE`            | `FALSE`      |
 | `don't care`       | `FALSE`                | `FALSE`            | `FALSE`      |
 | `don't care`       | `dont't care`          | `TRUE`             | `FALSE`      |
 
@@ -108,7 +108,7 @@ Instead of a reinit flag, there could also be a counter in the mock function to 
 
 ## Test Script for `init_pwm_if()`
 
-The test script is the implementation for the test case. To implemented, the test case should be close to complete.
+The test script is the implementation for the test case. 
 
 ```
 bool_t init_pwm_return_value = FALSE;

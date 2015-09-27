@@ -16,8 +16,7 @@ Once the stubs are generated, it is up to the test engineer to fill in the detai
 
 The thing to remember is that depending upon the test case, the stub may have a different behaviour. In one test case, the test engineer may want the stub to return a value that is out of the expected range for negative testing. In another test case, the test engineer may want to have the stub return the correct values for positive testing.
 
-## Debuggable
-
+## Debugging the software module
 
 During the early stages of the developing of the software module, bugs and logical problems will surface. Running the test cases over it will case it to detect a failure.
 
@@ -67,7 +66,7 @@ The obvious fall back is to trigger the unit test manually. When you want to exe
 
 For unit test on the target, it would be beneficial if the compiled unit test binary can be downloaded onto the target, executed and the result captured automatically. At the time of writing this book, several of the debugger tool companies are going towards this direction. Their debuggers can be controlled via scripts, making it possible for the automatic execution of the unit test binary.  
 
-## maturity
+## Maturity of the framework
 
 There are many unit test frameworks which are designed for a language that is quite new. This usually means that the unit test framework is also quite new. If this is the case, make sure that you pick a unit test framework that is well supported. The support could be in the form of a well informed and helpful user community. The support could also be purchased from technical experts of the unit test framework.
 
