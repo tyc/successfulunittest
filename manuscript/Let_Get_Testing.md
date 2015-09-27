@@ -32,7 +32,7 @@ Once the requirements are agreed by all the parties, including the customer, req
 
 Above its functional requirements, there will also be architecture requirements for the software module to meet.
 
-## Design on `init_pwm_if()`
+## Design of the PWM interface
 
 For the purpose of this book, the following functions to the PWM software stack are created. Here are their function prototypes.
 
@@ -42,17 +42,17 @@ For the purpose of this book, the following functions to the PWM software stack 
 	bool_t get_pwm_if(pwm_if_channel_t channel, pwm_if_signal_t *signal);
 
 
-I am adopted the coding standard of using the format of `<action>_<module>_<layer>()` for the function names. So looking at the function name, it is immediately obvious what its purpose. More context is provided by which layer the module is residing.
+I have adopted the format of `<action>_<module>_<layer>()` for the function names. So looking at the function name, it is immediately obvious what its purpose. More context is provided by which layer the module is residing.
 
 So for the function `get_pwm_if()`, you know that it get some data or information about a particular PWM channel and it is in the interface layer, this layer is also known as the hardware abstraction layer. Application code would interact with the hardware via this functions. If PWM signal at 50Hz at 75% duty cycle is needed, it would call `set_pwm_if()`. If the software is exiting sleep mode, it would call `init_pwm_if()`.
 
-The design focus of the functions is to have a good set of functions to affect the driver's characteristics. Here a good set also means not to provide too much functionality. The higher level of functionality, the more complex it is, and the higher risk level. 
+The design focus of the functions is to have a good set of functions to affect the driver's characteristics. Here a good set also means not to provide too much functionality. The higher level of functionality, the more complex it is, and the higher risk level. The dependency between the functions should also be kept to a minimum. This design rule would also reduce the complexity of the unit tests.
 
 ## Test Case Design for `init_pwm_if()`
 
 To develop a test case, a good understanding of the environment which the software module is going to be used in is crucial. Without this understanding, the inputs will be pure nonsense to the testing.
 
-Taking the function `init_pwm_if()`, it returns a bool_t of TRUE if it was initialised successfully. The truth table for its operation is 
+Taking the function `init_pwm_if()`, it returns a `bool_t` of TRUE if it was initialised successfully. The truth table for its operation is 
 
 | input1             | output     |
 | `pwm_if_channel_t` | `bool_t`   |
@@ -64,9 +64,9 @@ Taking the function `init_pwm_if()`, it returns a bool_t of TRUE if it was initi
 | `PWM_CH_MAX`       | `FALSE`    |
 | `PWM_CH_MAX + 1`   | `FALSE`    |
 
-The left hand column is the input values, and the right hand side is the return value. This truth table shows that the whole range of possible values are used. It starts from the lowest value of `PWM_CH0`, up to the maximum value of `PWM_CH_MAX`. With the C program language being used, it is based with index starting at 0. This is why a `FALSE` is returned when the input is PWM_CH_MAX. A good test is to test 1 item on either of the maximum and minimum value. This would catch the one-off bugs.
+The left hand column are the input values, and the right hand side are the return values. This truth table shows that the whole range of possible values are used. It starts from the lowest value of `PWM_CH0`, up to the maximum value of `PWM_CH_MAX`. With the C program language being used, it is based with index starting at 0. This is why a `FALSE` is returned when the input is PWM_CH_MAX. A good test is to test 1 item on either of the maximum and minimum value. This would catch the one-off bugs.
 
-The function description of the `init_pwm_if()` indicates the lower level MCAL is also initialised. In the unit test, a mock function is used to simulate the initialisation of the PWM peripheral. In your mock function, a flag is set to indicate that it has been called. There could also be a counter in the mock function to count the number of times it has been called. This is check that the PWM peripheral is initialised the correct number of times.
+The function description of the `init_pwm_if()` indicates the lower level MCAL is also initialised. In the unit test, a mock function is used to simulate the initialisation of the PWM peripheral. In your mock function, a flag is set to indicate that it has been called.
 
 So far, we have only consider inputs coming into the software module via the caller. There is also inputs coming into the software module on lower level functions. As mentioned before, it calls the microcontroller's peripheral. In this case, it calls `init_pwm()` to initialise peripheral. `init_pwm()` returns a boolean. It has the function prototype of
 
@@ -87,7 +87,7 @@ The truth table now becomes
 
 When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if()` is always a FALSE. It does not matter what value is passed into `init_pwm_if()`, this is indicated as a `don't care`.
 
-The requirements for `init_pwm_if()` is that it is must only be initialised once before it it is de-initialised. Further initialisation is forbidden. In a real world example, if the PWM is initialsed when it is operating could cause serious damage to if it was controlling machinery. So it is critical if there is a catch in the code for this scenario. Internal of `init_pwm_if()` is a flag that indicates if initialisation had occurred. If it is TRUE when initialisation is called, `init_pwm_if()` will return a FALSE.
+The requirement for `init_pwm_if()` is that it is must only be initialised once before it it is de-initialised. Further initialisation is forbidden. In a real world example, if the PWM is initialsed when it is operating, it could cause serious damage if it was controlling machinery. So it is critical if there is a catch in the code for this scenario. Internal of `init_pwm_if()` is a flag that indicates if initialisation had occurred. If it is TRUE when initialisation is called, `init_pwm_if()` will return a FALSE.
 
 The truth table now becomes
 
@@ -103,6 +103,7 @@ The truth table now becomes
 | `don't care`       | `FALSE`                | `FALSE`            | `FALSE`      |
 | `don't care`       | `dont't care`          | `TRUE`             | `FALSE`      |
 
+Instead of a reinit flag, there could also be a counter in the mock function to count the number of times it has been called. This is check that the PWM peripheral is initialised the correct number of times.
 
 
 ## Test Script for `init_pwm_if()`
@@ -173,7 +174,7 @@ void init_pwm_if_test_case(void)
 
 So pattern for writing a unit test is pretty straight forward. The concept is to iterate a set of inputs and check that the response from it is the same as the expected. The test code above has this pattern.
 
-So breaking the test script to its parts, at the start of the test script, a struct is created to contain the inputs and the expected output. Give the members meaningful names rather than input1, input2 and input3. The meaningful names will allow the test code to be read easily. In the example, there are two inputs and one output. Ensure that the member the same type of the tested parameters. The struct is local to this particular test case. For each test case, create a struct suitable for your test.
+So breaking the test script to its parts, at the start of the test script, a struct is created to contain the inputs and the expected output. Give the members meaningful names rather than `input1`, `input2` and `input3`. The meaningful names will allow the test code to be read easily. In this example, there are three inputs and one output. Ensure that the member the same type of the tested parameters. The struct is local to this particular test case. For each test case, create a struct suitable for your test.
 
 	typedef struct 
 	{
@@ -186,11 +187,11 @@ So breaking the test script to its parts, at the start of the test script, a str
 		bool_t expected_init_OK;
 	} test_data_t;
 
-The variable `init_pwm_return_value` is used to configure the return value of the mocked function. In this case, the mocked function `init_pwm()` will return the value `init_pwm_return_value`. So make sure that the type of `init_pwm_return_value` has the same type as the return type of `init_pwm()`.
+The variable `init_pwm_return_value` is used to configure the return value of the mock function. In this case, the mock function `init_pwm()` will return the value `init_pwm_return_value`. So make sure that the type of `init_pwm_return_value` has the same type as the return type of `init_pwm()`.
 
-The variable `init_pwm_reinit_value` is used to configure the mocked function if it has been initialised or not. If it is set to TRUE, the mocked function will behave as if it has been initalised.
+The variable `init_pwm_reinit_value` is used to configure the mock function if it has been initialised or not. If it is set to TRUE, the mock function will behave as if it has been initalised.
 
-The construction of the actual test code should be next. It is constructed as a `for` loop where the test data is iterated over the test code. It iterates for the entire dataset.
+The construction of the test code should be next. It is constructed as a `for` loop where the test data is iterated over by the test code. It iterates for the entire dataset.
  
 	for ( 	index = 0;
 			index < (sizeof(test_data)/sizeof(test_data[0]));
