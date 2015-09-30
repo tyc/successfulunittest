@@ -15,7 +15,7 @@
 #define MAX_FREQUENCY_PWM_IF		4000
 #define MIN_DUTY_CYCLE_PWM_IF		10
 #define MAX_DUTY_CYCLE_PWM_IF		90
-
+#define FREQUENCY_OFFSET			20
 
 bool_t init_pwm_if(pwm_if_channel_t channel)
 {
@@ -72,7 +72,7 @@ bool_t get_pwm_if(pwm_if_channel_t channel, pwm_if_signal_t *signal)
 		(signal != NULL))
 	{
 		signal->frequency = get_frequency_pwm(channel);
-		signal->duty_cycle = get_duty_cycle_pwm(channel);
+		signal->duty_cycle = get_duty_cycle(channel);
 
 		retVal = TRUE;
 	}

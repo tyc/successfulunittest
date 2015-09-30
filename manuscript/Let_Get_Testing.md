@@ -137,7 +137,7 @@ void init_pwm_if_test_case(void)
 	typedef struct 
 	{
 		/* inputs */
-		pwm_channel_t channel;
+		pwm_if_channel_t channel;
 		bool_t init_pwm_return_value;
 		bool_t init_pwm_reinit_flag;
 		
@@ -207,4 +207,36 @@ The construction of the test code should be next. It is constructed as a `for` l
 	}
 
 The code within the `for` loop does the actual testing. At the start of the loop, it configures the mocked objects for the return values, calls the function under tests. It checks that the return values are correct. The checking is via the `assert_true()` macro, an assertion is generated if the test clause evaluates to a FALSE. 
+
+## Code coverage
+
+For this test case, it is important to check the code coverage is adequate. This is a question that needs to be constantly asked, and the initial target is always 100% coverage for code and branch. If neither of these two metrics are at 100% coverage when you release the software module, there are gaps in the code that were not tested.
+
+The analysis for the code coverage is highly dependent on the implementation of the code. 
+
+The implementation for `init_pwm_if()` is as follows
+
+	/* initialise the PWM software stack
+	 */
+	bool_t init_pwm(pwm_if_channel_t channel)
+	{
+		bool_t retVal = FALSE;
+		
+		if (init_pwm_if_reinit_flag == FALSE)
+		{
+			if (channel < PWM_CH_MAX)
+			{
+				retVal = pwm_init((pwm_channel_t)(channel));
+				
+				if (retVal == TRUE)
+				{
+					init_pwm_if_init_flag  = TRUE;
+				}
+			}
+		}
+		
+		return (retVal);
+	}
+	
+Performing manual code coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage. You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `-ftest-coverage -fprofile-arcs`, the coverage will be automatically measured. This is using the `gcov` features of the GNU toolchain.
 

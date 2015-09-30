@@ -1,14 +1,7 @@
 #ifndef _PWM_IF_H_
 #define _PWM_IF_H_
 
-typedef enum
-{
-	PWM_IF_CH1,
-	PWM_IF_CH2,
-	PWM_IF_CH3,
-	PWM_IF_CH4,
-	PWM_IF_CH_MAX,
-} pwm_if_channel_t;
+typedef pwm_channel_t pwm_if_channel_t;
 
 typedef struct
 {
