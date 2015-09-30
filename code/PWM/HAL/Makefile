@@ -7,15 +7,13 @@ BIN_DIR = /usr/bin
 # The actual toolchain
 #
 CC      = $(BIN_DIR)/gcc
-SIZE	= $(BIN_DIR)/size
-STRIP	= $(BIN_DIR)/strip
 
 # Most of the time, these two datum are the ones to be chagned.
 # INCLUDES is used to tell the compiler where all the header files
 #          are.
 # OBJS is adjusted to add the files to be built.
 
-INCLUDES = -I. -IIncludes -I../MCAL 
+INCLUDES = -I. -I../MCAL -I../../include
 OBJS = pwm_if.o pwm_if_test.o
 
 # tells makedepend where to find the header files as make depend is not as 

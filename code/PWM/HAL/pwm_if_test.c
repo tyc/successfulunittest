@@ -1,6 +1,3 @@
-#include <stdarg.h>
-#include <stddef.h>
-#include <setjmp.h>
 #include <assert.h>
 
 #include <stdio.h>

@@ -3,11 +3,11 @@
 
 #if defined(__AVR__)
 
-#define uchar_t 	unsigned char
-#define uint8_t		unsigned char
-#define sint8_t		signed char
-#define uint16_t	unsigned int
-#define sint16_t	signed int
+typedef unsigned char 	uchar_t
+typedef unsigned char	uint8_t
+typedef signed char 	sint8_t
+typedef unsigned int	uint16_t
+typedef signed int		sint16_t
 
 typedef enum
 {
@@ -17,7 +17,23 @@ typedef enum
 
 #else /* default inclusion */
 
-#include <stdint.h>
+typedef unsigned char 	uchar_t;
+typedef unsigned char	uint8_t;
+typedef signed char 	sint8_t;
+typedef unsigned int	uint16_t;
+typedef signed int		sint16_t;
+
+typedef enum
+{
+	FALSE = 0,
+	TRUE = !FALSE,
+} bool_t;
+
+#ifndef NULL
+
+#define NULL	((void *) (0))
+
+#endif /* NULL */
 
 #endif
 
