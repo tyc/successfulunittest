@@ -203,10 +203,23 @@ The construction of the test code should be next. It is constructed as a `for` l
 		expected_init_OK = init_pwm_if(test_data[index].channel);
 		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
 		
-		assert_true(expected_init_OK == test_data[index].expected_init_OK);
+		assert(expected_init_OK == test_data[index].expected_init_OK);
 	}
 
 The code within the `for` loop does the actual testing. At the start of the loop, it configures the mocked objects for the return values, calls the function under tests. It checks that the return values are correct. The checking is via the `assert_true()` macro, an assertion is generated if the test clause evaluates to a FALSE. 
+
+## Building the code
+
+To execute the test, it is necessary to build the binary. I have adopted a simple makefile to build the binary. It is clear and simple to see what is going on.
+
+Assuming that you are using gcc, you can compile the binary using the following command.
+
+	gcc -I../../include -I../MCAL pwm_if_test.c pwm_if.c -o unittest
+  
+
+The include paths as specified by the `-I` option specifies where the headers are. Feel free to change them for your setup. In this example, it is including the header for the` pwm.h `by including the `MCAL` directory, and it is including `std_types.h` from the `include` directory.
+
+If the unit test passes, no assertion will be generated. An assertion triggered off is a failed test case.
 
 ## Code coverage
 
