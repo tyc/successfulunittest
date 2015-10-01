@@ -7,12 +7,17 @@
 #include "pwm_if.h"
 
 bool_t init_pwm_return_value = FALSE;
+bool_t init_pwm_reinit_flag = FALSE;
 
+/***********************************************************************
+ * mock functions
+ ***********************************************************************
+ */
 bool_t init_pwm(pwm_channel_t channel)
 {
 	bool_t retVal = FALSE;
 
-	if (channel < PWM_CH_MAX)
+	if ((init_pwm_reinit_flag == FALSE) && (channel < PWM_CH_MAX))
 	{
 		retVal = init_pwm_return_value;
 	}
@@ -73,6 +78,10 @@ uint8_t get_duty_cycle(pwm_channel_t channel)
 }
 
 
+/***********************************************************************
+ * test cases
+ ***********************************************************************
+ */
 
 /** test case for init_pwm_if() */
 static void init_pwm_if_test_case(void)
@@ -82,22 +91,24 @@ static void init_pwm_if_test_case(void)
 	typedef struct
 	{
 		/* inputs */
-		pwm_channel_t input1;
-		bool_t input2;
+		pwm_channel_t channel;
+		bool_t init_pwm_return_value;
+		bool_t init_pwm_reinit_flag;
 
 		/* output */
-		bool_t output;
+		bool_t expected_init_OK;
 	} test_data_t;
 
 	test_data_t test_data[] =
 	{
-		{PWM_CH1-1, 	TRUE, FALSE},
-		{PWM_CH1,   	TRUE, TRUE},
-		{PWM_CH1+1, 	TRUE, TRUE},
-		{PWM_CH_MAX-1,  TRUE, TRUE},
-		{PWM_CH_MAX, 	TRUE, FALSE},
-		{PWM_CH_MAX+1, 	TRUE, FALSE},
-		{PWM_CH1+1, 	FALSE, FALSE},
+		{PWM_CH0-1, 	TRUE, FALSE, FALSE},
+		{PWM_CH0,   	TRUE, FALSE, TRUE},
+		{PWM_CH0+1, 	TRUE, FALSE, TRUE},
+		{PWM_CH_MAX-1,  TRUE, FALSE, TRUE},
+		{PWM_CH_MAX, 	TRUE, FALSE, FALSE},
+		{PWM_CH_MAX+1, 	TRUE, FALSE, FALSE},
+		{PWM_CH0+1, 	FALSE, FALSE, FALSE},
+		{PWM_CH0+1, 	FALSE, TRUE, FALSE},
 	};
 
 	for ( 	index = 0;
@@ -106,15 +117,17 @@ static void init_pwm_if_test_case(void)
 		)
 	{
 		bool_t output;
-		init_pwm_return_value = test_data[index].input2;
-		output = init_pwm_if(test_data[index].input1);
+		init_pwm_return_value = test_data[index].init_pwm_return_value;
+		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
+		output = init_pwm_if(test_data[index].channel);
 
-		assert(output == test_data[index].output);
+		assert(output == test_data[index].expected_init_OK);
 	}
 }
 
 
 int main(void) {
+
 	init_pwm_if_test_case();
 
 	return (0);

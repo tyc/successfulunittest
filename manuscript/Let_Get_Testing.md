@@ -8,6 +8,8 @@ In a typical application, the software would be used to regulate the speed of th
 
 To ease the development of the software, it is a good idea to break the software into two layers. The layer that is closer to the hardware is usually known as the device driver, and the layer above it is known as the manager or the handler. Together, they are known as a software stack. In a more complex software stack, there could be more software modules or layers.
 
+For this example, I am not going to be use a unit test framework such as Cmocka or Ceedling. I want to show the basics of constructing a unit test with all the inner workings.  
+
 ## Requirements
 
 Let's start by laying out the requirements so that we know what is to be built.
@@ -145,14 +147,14 @@ void init_pwm_if_test_case(void)
 		bool_t expected_init_OK;
 	} test_data_t;
 	
-	test_data_t test_dat[] =
+	test_data_t test_data[] =
 	{
 		{PWM_CH0-1, 	TRUE, FALSE, FALSE},
 		{PWM_CH0,   	TRUE, FALSE, TRUE},
 		{PWM_CH0+1, 	TRUE, FALSE, TRUE},
 		{PWM_CH_MAX-1,  TRUE, FALSE, TRUE},
 		{PWM_CH_MAX, 	TRUE, FALSE, FALSE},
-		{PWM_CH_MAX+1  	TRUE, FALSE, FALSE},
+		{PWM_CH_MAX+1,  	TRUE, FALSE, FALSE},
 		{PWM_CH0+1, 	FALSE, FALSE, FALSE},
 		{PWM_CH0+1, 	FALSE, TRUE, FALSE},
 	};
@@ -200,8 +202,8 @@ The construction of the test code should be next. It is constructed as a `for` l
 	{
 		bool_t expected_init_OK;
 		init_pwm_return_value = test_data[index].init_pwm_return_value;
-		expected_init_OK = init_pwm_if(test_data[index].channel);
 		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
+		expected_init_OK = init_pwm_if(test_data[index].channel);
 		
 		assert(expected_init_OK == test_data[index].expected_init_OK);
 	}
@@ -231,25 +233,28 @@ The implementation for `init_pwm_if()` is as follows
 
 	/* initialise the PWM software stack
 	 */
-	bool_t init_pwm(pwm_if_channel_t channel)
+	bool_t init_pwm_if(pwm_if_channel_t channel)
 	{
 		bool_t retVal = FALSE;
-		
-		if (init_pwm_if_reinit_flag == FALSE)
+	
+		if (init_pwm_reinit_flag == FALSE)
 		{
 			if (channel < PWM_CH_MAX)
 			{
-				retVal = pwm_init((pwm_channel_t)(channel));
-				
+				retVal = init_pwm((pwm_channel_t)(channel));
+	
 				if (retVal == TRUE)
 				{
-					init_pwm_if_init_flag  = TRUE;
+					init_pwm_reinit_flag  = TRUE;
 				}
 			}
 		}
-		
+	
 		return (retVal);
 	}
 	
 Performing manual code coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage. You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `-ftest-coverage -fprofile-arcs`, the coverage will be automatically measured. This is using the `gcov` features of the GNU toolchain.
 
+## Getting access to internal variables
+
+In the function `init_pwm_if()`

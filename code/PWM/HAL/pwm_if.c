@@ -17,16 +17,30 @@
 #define MAX_DUTY_CYCLE_PWM_IF		90
 #define FREQUENCY_OFFSET			20
 
+STATIC bool_t init_pwm_reinit_flag = FALSE;
+
+/* initialise the PWM software stack
+ */
 bool_t init_pwm_if(pwm_if_channel_t channel)
 {
 	bool_t retVal = FALSE;
-	if (channel < PWM_CH_MAX)
+
+	if (init_pwm_reinit_flag == FALSE)
 	{
-		retVal = init_pwm(channel);
+		if (channel < PWM_CH_MAX)
+		{
+			retVal = init_pwm((pwm_channel_t)(channel));
+
+			if (retVal == TRUE)
+			{
+				init_pwm_reinit_flag  = TRUE;
+			}
+		}
 	}
 
 	return (retVal);
 }
+
 
 bool_t deinit_pwm_if(pwm_if_channel_t channel)
 {

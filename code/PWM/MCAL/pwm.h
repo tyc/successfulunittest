@@ -3,11 +3,11 @@
 
 typedef enum
 {
+	PWM_CH0,
 	PWM_CH1,
 	PWM_CH2,
 	PWM_CH3,
-	PWM_CH4,
-	PWM_CH_MAX,
+	PWM_CH_MAX
 } pwm_channel_t;
 
 bool_t init_pwm(pwm_channel_t channel);

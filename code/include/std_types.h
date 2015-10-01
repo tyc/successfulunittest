@@ -1,6 +1,12 @@
 #ifndef _STD_TYPES_H_
 #define _STD_TYPES_H_
 
+#if defined(__UNITTEST__)
+#define STATIC
+#else
+#define STATIC 	static
+#endif
+
 #if defined(__AVR__)
 
 typedef unsigned char 	uchar_t
