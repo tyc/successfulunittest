@@ -214,9 +214,9 @@ The code within the `for` loop does the actual testing. At the start of the loop
 
 To execute the test, it is necessary to build the binary. I have adopted a simple makefile to build the binary. It is clear and simple to see what is going on.
 
-Assuming that you are using gcc, you can compile the binary using the following command.
+Assuming that you are using clang, you can compile the binary using the following command.
 
-	gcc -I../../include -I../MCAL pwm_if_test.c pwm_if.c -o unittest
+	clang -I../../include -I../MCAL pwm_if_test.c pwm_if.c -o unittest
   
 
 The include paths as specified by the `-I` option specifies where the headers are. Feel free to change them for your setup. In this example, it is including the header for the` pwm.h `by including the `MCAL` directory, and it is including `std_types.h` from the `include` directory.
@@ -253,8 +253,64 @@ The implementation for `init_pwm_if()` is as follows
 		return (retVal);
 	}
 	
-Performing manual code coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage. You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `-ftest-coverage -fprofile-arcs`, the coverage will be automatically measured. This is using the `gcov` features of the GNU toolchain.
+Performing manual code coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage. You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `--coverage`, your software module will be linked with code coverage data, and it will be automatically measured when the software module is executed. This is using the `gcov` features of the GNU toolchain.
+
+With the command line build, it would become 
+
+	clang -I../../include -I../MCAL pwm_if_test.c pwm_if.c -o unittest --coverage
+
 
 ## Getting access to internal variables
 
-In the function `init_pwm_if()`
+In the function `init_pwm_if()`, the variable `init_pwm_reinit_flag` is used by pwm stack to block its re-initialisation. The proper implementation is for this variable to local to the pwm stack, so for the purpose unit test, this makes `init_pwm_reinit_flag` inaccessible. There are options to get around this problem
+
+### Helper set/get function
+
+Two unit test helper functions can be created to set the value of `init_pwm_reinit_flag`
+
+	#if defined(__UNITTEST__)
+	void set_init_pwm_reinit_flag(bool_t data)
+	{
+		init_pwm_reinit_flag = data;
+	}
+	
+	bool_t get_init_pwm_reinit_flag(void)
+	{
+		return (init_pwm_reinit_flag);
+	} 
+	#endif /* __UNITTEST__ */
+	
+
+These two functions are only compiled when `__UNITTEST__` are defined.
+
+### A macro for STATIC
+
+The variable `init_pwm_reinit_flag` is declared as 
+
+	static bool_t init_pwm_reinit_flag = FALSE;
+	
+To make it accessible to other software modules, it needs to be declared without the `static` keyword such as 
+
+	bool_t init_pwm_reinit_flag = FALSE;
+	
+To satisfy both requirement, `static` can be replaced with a macro. So in `std_types.h`, there is a definition of 
+
+	#if defined(__UNITTEST__)
+	
+	#define STATIC
+	
+	#else
+	
+	#define STATIC	static
+	
+	#endif /* __UNITTEST__ */ 
+
+The definition is declared as in `pwm_if.c` 
+
+	STATIC bool_t init_pwm_reinit_flag = FALSE;
+	
+To use it in `pwm_if_test.c`, it is added to the source via
+
+	extern bool_t init_pwm_reinit_flag;
+	
+  

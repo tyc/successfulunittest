@@ -7,7 +7,7 @@
 #include "pwm_if.h"
 
 bool_t init_pwm_return_value = FALSE;
-bool_t init_pwm_reinit_flag = FALSE;
+extern bool_t init_pwm_reinit_flag;
 
 /***********************************************************************
  * mock functions
@@ -17,7 +17,7 @@ bool_t init_pwm(pwm_channel_t channel)
 {
 	bool_t retVal = FALSE;
 
-	if ((init_pwm_reinit_flag == FALSE) && (channel < PWM_CH_MAX))
+	if (channel < PWM_CH_MAX)
 	{
 		retVal = init_pwm_return_value;
 	}

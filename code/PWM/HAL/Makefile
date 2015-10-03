@@ -6,7 +6,7 @@ BIN_DIR = /usr/bin
 
 # The actual toolchain
 #
-CC      = $(BIN_DIR)/gcc
+CC      = $(BIN_DIR)/clang
 
 # Most of the time, these two datum are the ones to be chagned.
 # INCLUDES is used to tell the compiler where all the header files
@@ -22,8 +22,10 @@ OBJS = pwm_if.o pwm_if_test.o
 DEPEND_INCLUDES = $(INCLUDES) 
 
 OPTIMISATION = -O0
-WARNINGS = -Wall -Wextra
+COVERAGE = --coverage
+WARNINGS = -Wall -Wextra $(COVERAGE) -D__UNITTEST__
 FLAGS	= $(WARNINGS) $(INCLUDES) $(OPTIMISATION) -c
+LINKER_FLAGS = $(COVERAGE)
 TARGET = unittest
 
 SRCS = $(OBJS:.o=.c)
@@ -57,7 +59,7 @@ clean:
 
 dist_clean : clean src_clean	
 	find . -name "*.bin" | xargs rm -rf
-	find . -name "*.depend" | xargs rm -rf
+	find . -name "*.gc*" | xargs rm -rf
 	rm -rf $(RELEASE_DIR)
 
 depend: $(SRCS) 
