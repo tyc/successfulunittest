@@ -60,7 +60,7 @@ clean:
 dist_clean : clean src_clean	
 	find . -name "*.bin" | xargs rm -rf
 	find . -name "*.gc*" | xargs rm -rf
-	rm -rf $(RELEASE_DIR)
+	rm -rf $(RELEASE_DIR) $(TARGET)
 
 depend: $(SRCS) 
 	rm -rf Makefile.depend

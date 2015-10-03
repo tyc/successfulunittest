@@ -107,25 +107,77 @@ The truth table now becomes
 
 Instead of a reinit flag, there could also be a counter in the mock function to count the number of times it has been called. This is check that the PWM peripheral is initialised the correct number of times.
 
+## Getting access to internal variables
+
+In the function `init_pwm_if()`, the variable `init_pwm_reinit_flag` is used by pwm stack to block its re-initialisation. The proper implementation is for this variable to be local to the pwm stack, so for the purpose unit test, this makes `init_pwm_reinit_flag` inaccessible. There are options to get around this problem
+
+### Helper set/get function
+
+Two unit test helper functions can be created to set the value of `init_pwm_reinit_flag`
+
+	#if defined(__UNITTEST__)
+	void set_init_pwm_reinit_flag(bool_t data)
+	{
+		init_pwm_reinit_flag = data;
+	}
+	
+	bool_t get_init_pwm_reinit_flag(void)
+	{
+		return (init_pwm_reinit_flag);
+	} 
+	#endif /* __UNITTEST__ */
+	
+
+These two functions are only compiled when `__UNITTEST__` are defined.
+
+### A macro for STATIC
+
+The variable `init_pwm_reinit_flag` is declared as 
+
+	static bool_t init_pwm_reinit_flag = FALSE;
+	
+To make it accessible to other software modules, it needs to be declared without the `static` keyword such as 
+
+	bool_t init_pwm_reinit_flag = FALSE;
+	
+To satisfy both requirement, `static` can be replaced with a macro. So in `std_types.h`, there is a definition of 
+
+	#if defined(__UNITTEST__)
+	
+	#define STATIC
+	
+	#else
+	
+	#define STATIC	static
+	
+	#endif /* __UNITTEST__ */ 
+
+The definition is declared as in `pwm_if.c` 
+
+	STATIC bool_t init_pwm_reinit_flag = FALSE;
+	
+To use it in `pwm_if_test.c`, it is added to the source via
+
+	extern bool_t init_pwm_reinit_flag;
+
 
 ## Test Script for `init_pwm_if()`
 
-The test script is the implementation for the test case. 
+The test script is the implementation for the test case. For this example, I have implemented test case as shown in the following code. I have chosen to use the macro method of accessing the internal variable. It was an arbitrary decision.
+
 
 ```
 bool_t init_pwm_return_value = FALSE;
+extern bool_t init_pwm_reinit_flag;
 
 /** Mock function for init_pwm() */
 bool_t init_pwm(pwm_channel_t channel)
 {
 	bool_t retVal = FALSE;
 	
-	if (init_pwm_reinit_flag == FALSE)
+	if (channel < PWM_CH_MAX)
 	{
-		if (channel < PWM_CH_MAX)
-		{
-			retVal = init_pwm_return_value;
-		}
+		retVal = init_pwm_return_value;
 	}
 	
 	return (retVal);
@@ -169,7 +221,7 @@ void init_pwm_if_test_case(void)
 		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
 		expected_init_OK = init_pwm_if(test_data[index].channel);
 		
-		assert_true(expected_init_OK == test_data[index].expected_init_OK);
+		assert(expected_init_OK == test_data[index].expected_init_OK);
 	}
 }
 ```
@@ -223,11 +275,11 @@ The include paths as specified by the `-I` option specifies where the headers ar
 
 If the unit test passes, no assertion will be generated. An assertion triggered off is a failed test case.
 
-## Code coverage
+## Test coverage
 
-For this test case, it is important to check the code coverage is adequate. This is a question that needs to be constantly asked, and the initial target is always 100% coverage for code and branch. If neither of these two metrics are at 100% coverage when you release the software module, there are gaps in the code that were not tested.
+For this test case, it is important to check the tode coverage is adequate. This is a question that needs to be constantly asked, and the initial target is always 100% coverage for code and branch. If neither of these two metrics are at 100% coverage when you release the software module, there are gaps in the code that were not tested.
 
-The analysis for the code coverage is highly dependent on the implementation of the code. 
+The analysis for the test coverage is highly dependent on the implementation of the code. 
 
 The implementation for `init_pwm_if()` is as follows
 
@@ -253,64 +305,77 @@ The implementation for `init_pwm_if()` is as follows
 		return (retVal);
 	}
 	
-Performing manual code coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage. You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `--coverage`, your software module will be linked with code coverage data, and it will be automatically measured when the software module is executed. This is using the `gcov` features of the GNU toolchain.
+Performing manual test coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage. You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `--coverage`, your software module will be linked with code coverage data, and it will be automatically measured when the software module is executed. This is using the `gcov` features of the GNU toolchain.
 
 With the command line build, it would become 
 
 	clang -I../../include -I../MCAL pwm_if_test.c pwm_if.c -o unittest --coverage
 
-
-## Getting access to internal variables
-
-In the function `init_pwm_if()`, the variable `init_pwm_reinit_flag` is used by pwm stack to block its re-initialisation. The proper implementation is for this variable to local to the pwm stack, so for the purpose unit test, this makes `init_pwm_reinit_flag` inaccessible. There are options to get around this problem
-
-### Helper set/get function
-
-Two unit test helper functions can be created to set the value of `init_pwm_reinit_flag`
-
-	#if defined(__UNITTEST__)
-	void set_init_pwm_reinit_flag(bool_t data)
-	{
-		init_pwm_reinit_flag = data;
-	}
+After the execution of the binary, the file `pwm_if.gcno` and `pwm_if.gcda` are generated. These two files contain details about the coverage, but they are in binary format. To convert it into human readable format, `gcov` is needed. Use the `-f` and `-b` options to get a quick summary.
 	
-	bool_t get_init_pwm_reinit_flag(void)
-	{
-		return (init_pwm_reinit_flag);
-	} 
-	#endif /* __UNITTEST__ */
+	localhost:HAL tehnyitchin$ gcov -f -b pwm_if.gcno
+	Function 'init_pwm_if'
+	Lines executed:100.00% of 10
+	Branches executed:100.00% of 4
+	Taken at least once:100.00% of 4
+	No calls
 	
-
-These two functions are only compiled when `__UNITTEST__` are defined.
-
-### A macro for STATIC
-
-The variable `init_pwm_reinit_flag` is declared as 
-
-	static bool_t init_pwm_reinit_flag = FALSE;
+	Function 'deinit_pwm_if'
+	Lines executed:0.00% of 5
+	No branches
+	No calls
 	
-To make it accessible to other software modules, it needs to be declared without the `static` keyword such as 
+	Function 'set_pwm_if'
+	Lines executed:0.00% of 12
+	Branches executed:0.00% of 8
+	Taken at least once:0.00% of 8
+	No calls
+	
+	Function 'get_pwm_if'
+	Lines executed:0.00% of 7
+	Branches executed:0.00% of 2
+	Taken at least once:0.00% of 2
+	No calls
+	
+	File 'pwm_if.c'
+	Lines executed:29.41% of 34
+	Branches executed:28.57% of 14
+	Taken at least once:28.57% of 14
+	No calls
+	pwm_if.c:creating 'pwm_if.c.gcov'
 
-	bool_t init_pwm_reinit_flag = FALSE;
-	
-To satisfy both requirement, `static` can be replaced with a macro. So in `std_types.h`, there is a definition of 
+From the output, it shows that the `init_pwm_if()` is fully covered from a code coverage and branch coverage perspective, both metrics are measured at 100%. Code coverage is reported as "Line executed". Branch coverage is reported as "Branches executed". The other functions in `pwm_if.c` were not tested, so their metrics are at 0%.
 
-	#if defined(__UNITTEST__)
-	
-	#define STATIC
-	
-	#else
-	
-	#define STATIC	static
-	
-	#endif /* __UNITTEST__ */ 
+The file `pwm_if.c.gcov` has the details per line of code. Showing the details for `init_pwm_if()`, 
 
-The definition is declared as in `pwm_if.c` 
+	        -:   21:/* initialise the PWM software stack
+	        -:   22: */
+	function init_pwm_if called 8 returned 100% blocks executed 100%
+	        -:   23:bool_t init_pwm_if(pwm_if_channel_t channel)
+	        -:   24:{
+	        8:   25:	bool_t retVal = FALSE;
+	        -:   26:
+	        8:   27:	if (init_pwm_reinit_flag == FALSE)
+	        -:   28:	{
+	        7:   29:		if (channel < PWM_CH_MAX)
+	branch  0 taken 57%
+	branch  1 taken 43%
+	        -:   30:		{
+	        4:   31:			retVal = init_pwm((pwm_channel_t)(channel));
+	        -:   32:
+	        4:   33:			if (retVal == TRUE)
+	branch  0 taken 75%
+	branch  1 taken 25%
+	        -:   34:			{
+	        3:   35:				init_pwm_reinit_flag  = TRUE;
+	        3:   36:			}
+	        4:   37:		}
+	        7:   38:	}
+	        -:   39:
+	        8:   40:	return (retVal);
+	        -:   41:}
+	        
+	        
+The number of times the line of code has executed is shown next to code's line number in the source code. One of the interesting metric is the branch metric. It must add up to 100% for all the different branches, and none of the branches must be 0% taken. If one of the branch is at 0%, the branch coverage is not 100% and more inputs must be created to achieve 100% branch coverage.
 
-	STATIC bool_t init_pwm_reinit_flag = FALSE;
-	
-To use it in `pwm_if_test.c`, it is added to the source via
-
-	extern bool_t init_pwm_reinit_flag;
-	
-  
+With a more complex function, this type of code coverage measurement tools will help reduce effort required. It is much better and less error prone when compared measuring it manually. 
