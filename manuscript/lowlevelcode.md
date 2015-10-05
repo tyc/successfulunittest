@@ -1,16 +1,16 @@
-## Testing Low Level Code
+# Testing Low Level Code
 
-Low level code are code that works closely with the hardware. Because the code works very close to the hardware, it is very specific to the hardware it is targeting. From a reuse perspective, the best scenario if a standard microcontroller or standard circuit is used for all projects, now and in the future. Although it is the best scenario, it is not a realistic scenario. Typically, the microcontroller is chosen for the project and most projects have their unique requirements that would cause a different microcontroller to be chosen. For example, for a project where power consumption is a key requirement, the Texas Instrument MSP430 is a good candidate, however for a project that needs more processing power, an microcontroller with a ARM core in it might more suitable.
+Low level code are code that works closely with the hardware. They also known as device drivers. Because the code works very close to the hardware, it is very specific to the hardware it is targeting. From a reuse perspective, the best scenario is if a standard microcontroller or standard circuit is used for all projects, now and in the future. Although it is the best scenario, it is not a realistic scenario. Typically, the microcontroller is chosen for the project and most projects have their unique requirements that would cause a different microcontroller to be chosen for each project. For example, for a project where power consumption is a key requirement, the Texas Instrument MSP430 is a good candidate as it has a low power consumption during sleep mode, however for a project that needs more processing power, an microcontroller with a ARM core in it might more suitable as it provides high processing power.
 
-To write testable code, it can be written to be tested with an debugger attached to the hardware. This would tests the code the actual device and would get the true behaviour. There several reasons why this scenario may not work as well.
+To test the code, it can be written to be tested with an debugger attached to the hardware. This would tests the code the actual device and would get the true behaviour. There several reasons why this scenario may not work as well.
 
-The debugger hardware may be expensive and not every developer can have access to one. The electronic circuitry may not even be designed for you to start interfacing to. So the low level code you are creating now must be tested on a mocked platform.
+The debugger hardware may be expensive and not every developer can have access to one. The testing procedure is also likely to be manually executed. The electronic circuitry may not even be designed for you to start interfacing to. So the low level code you are creating now must be tested on a mocked platform.
 
 ## Mocking the hardware
 
-To test the low level code, the concept of mock is used. The behaviour of the microcontroller and the electronic circuitry are simulated in the mocked functions.
+To test the low level code, the concept of mock is used. The behaviour of the microcontroller and the electronic circuitry are simulated in the mocked functions. The key to accessing these is getting access to the registers of the microcontroller. The registers are the conduits between the software and the hardware. Even memory devices can be seen registers.   
 
-## Accessing to the registers
+### Accessing to the registers
 
 Most microcontrollers functions are accessible via memory mapped registers. These registers contain bit fields that you can use to affect the behaviour, and can also be use to read status of inputs or functions.
 
