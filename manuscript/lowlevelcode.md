@@ -19,15 +19,17 @@ For example, on a Atmel ATMega128 micrcontroller, to set the pin PB0 as an outpu
 	set bit DDB0 of register DDRB to 1
 	set bit PORTB0 of register PORTB to 1
 
-Register DDRB and PORTB resides at address 0x1A and 0x19 respectively.
+Register `DDRB` and `PORTB` resides at address `0x1A` and `0x19` respectively.
 
 In your C code, there would a header file that defines all the register's addresses. To make it testable, it could be defined as
 
-	#if defined (__UNITTEST__)
+
 	
 	#define PORTB_ADDRESS			0x1A
 	#define DDRB_ADDRESS			0x19
 	#define MAX_NUMBER_REGISTERS	0x40
+	
+	#if defined (__UNITTEST__)
 	
 	uint8 register[MAX_NUMBER_REGISTERS];
 	
@@ -49,9 +51,9 @@ In your software module, you can use it in the following manner
 	
 Noticed that I also do a read before setting the value.
 	
-When doing unit test, the `__UNITTEST__` macro would be defined and PORTB and DDRB would be accessing an array element. Otherwise, it would addressing the actual registers on the microcontroller. Noticed that I created an array to contain all the registers in the microcontroller. This would only work if the microcontroller is small and simple. Luckily, the ATmega128 addressing of the registers starts at a very  low address and it has only a small amount of registers. The size of all the mocked variables can be fitted to an 8bit value.
+When doing unit test, the `__UNITTEST__` macro would be defined and PORTB and DDRB would be accessing an array element. Otherwise, it would addressing the actual registers on the microcontroller. Noticed that I created an array to contain all the registers in the microcontroller. This would only work if the microcontroller is small and simple. Luckily, the ATMega128 addressing of the registers starts at a very  low address and it has only a small amount of registers. The size of all the mocked variables can be fitted to an 8bit value.
 
-For a 32bit microcontroller such as a Freescale MPC5510 PowerPC, there are hundreds of registers and having all the registers' addresses defined is not a suitable strategy. An array to contain all the registers would be very large, and the index into the array would be a 32bit value. For such a microcontroller, the following set up might be better.
+For a 32bit microcontroller such as a Freescale MPC5510 PowerPC, there are hundreds of registers and having all the registers' addresses simulated as an array is not a suitable strategy. An array to contain all the registers would be very large, and the index into the array would be a 32bit value. For such a microcontroller, the following set up might be better.
 
 	#if defined (__UNITTEST__)
 	
@@ -71,6 +73,94 @@ For a 32bit microcontroller such as a Freescale MPC5510 PowerPC, there are hundr
 	
 	#endif /* __UNITTEST__ */
  
-The way the peripherals are mapped will dictate which method is finally used.  Most modern 32bit microcontroller has its peripherals's registers to a region in the memory space. The base address specifies the start address for the region, and the amount of registers specifies the size of the region.
+When the lower level code is using the registers, it does not have to consider whether it is doing a unit test or it is using it on the target.
+
+	...
+	/* clearing the lower nibble */
+	PCR0 &= 0x0f;
+	
+	/* checking if bit 3 if PCR1 is set */
+	if (PCR1 & (1<<PIN3) != 0x00)
+	{
+		....
+	}
+	
+	
+### Dealing with interrupts
+
+In embedded system, the microcontroller would sometimes have to deal with interrupt. Interrupt is used for events that must be serviced and can not be missed. It is also used to handle non-periodic events.
+
+In a simple system, the interrupt would be captured and be serviced by the software immediately. For example, an interrupt is triggered when analog to digital converter has completed a conversion. The interrupt service routine would be copy the converted value, clear the interrupt flag and trigger another the analog to digital converter to perform another conversion. 
+
+In a complex system, the interrupt design is divided into two halves. The top half is used to capture the interrupt event and capture the necessary information. The bottom half which is executed periodically will poll the flag and continue to process the data. For example, when data is received by the CAN peripheral, an interrupt is triggered. The interrupt service routine will copy that data from the data register of the CAN peripheral in a receive data buffer and clear the receive interrupt. That is the top half of the interrupt service routine. The bottom half would poll the "data in buffer" flag to be raised. Once detected, it would process the data in the buffer. The top half is fast code that does not take up took put too much CPU load. The bottom half is usually a lot slower and is executed periodically. This strategy has many variations and is derived from the Unix system.   
+
+From a unit test perspective, it is difficult to simulate the dynamic nature of the interrupt service routine. So each portion of the interrupt service would have to be tested separately.
+
+Let's take an example where the analog to digital convert interrupt is to be unit tested. It is a simple routine that would take converted value and store it into a buffer.
+
+The simple requirements are
+
+	req_ADC1: When the interrupt is triggered, the ISR shall copy the converted value into the FIFO of the ADC Manager.
+	req_ADC2: At the end of the ISR, the interrupt flag is cleared.
+  
+From the requirements, the inputs are
+
+* The interrupt flag (in1)
+* The converted data (in2)
+
+From the requirements, the outputs are
+
+* the interrupt flag status (out1)
+* the FIFO buffer containing the converted data (out2)
 
 
+| in1    | in2     | out1    | out2    |
+| ------ |:-------:|:-------:|:-------:|
+| false  |:0x55   :|:false  :|:0xff   :|
+| true   |:0x55   :|:false  :|:0x55   :|
+
+
+The value used for the converted data (in2) is really a don't care, but I put in a value in there to specify that the value of copied value (out2) into the FIFO buffer needs to be the same.
+
+```
+void adc_ISR_test_case(void)
+{
+	typedef struct 
+	{
+		/* inputs */
+		bool_t interrupt_flag_input;
+		uint16_t converted_val;
+		
+		/* output */
+		bool_t interrupt_flag_output;
+		uint16_t data_in_fifo;
+	} test_data_t;
+	
+	test_data_t test_data[] =
+	{
+		{FALSE, 	0x55, FALSE, 0xFF},
+		{TRUE,   	0x55, FALSE, 0x55}
+	};
+	
+	for ( 	index = 0;
+			index < (sizeof(test_data)/sizeof(test_data[0]));
+			index++
+		)
+	{
+		bool_t expected_init_OK;
+		
+		if (test_data[index].interrupt_flag_input != FALSE)
+		{
+			ADC0_SR |= (0x01 << ADC0_EOC_BIT);
+		}
+		else
+		{
+			ADC0_SR &=
+		init_pwm_return_value = test_data[index].init_pwm_return_value;
+		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
+		expected_init_OK = init_pwm_if(test_data[index].channel);
+		
+		assert(expected_init_OK == test_data[index].expected_init_OK);
+	}
+}
+```
