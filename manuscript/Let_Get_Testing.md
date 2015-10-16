@@ -378,4 +378,4 @@ The file `pwm_if.c.gcov` has the details per line of code. Showing the details f
 	        
 The number of times the line of code has executed is shown next to code's line number in the source code. One of the interesting metric is the branch metric. It must add up to 100% for all the different branches, and none of the branches must be 0% taken. If one of the branch is at 0%, the branch coverage is not 100% and more inputs must be created to achieve 100% branch coverage.
 
-With a more complex function, this type of code coverage measurement tools will help reduce effort required. It is much better and less error prone when compared measuring it manually. 
+With a more complex function, this type of code coverage measurement tools will help reduce effort required. It is much better and less error prone when compared measuring it manually. Z

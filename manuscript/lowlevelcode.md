@@ -90,18 +90,16 @@ When the lower level code is using the registers, it does not have to consider w
 
 In embedded system, the microcontroller would sometimes have to deal with interrupt. Interrupt is used for events that must be serviced and can not be missed. It is also used to handle non-periodic events.
 
-In a simple system, the interrupt would be captured and be serviced by the software immediately. For example, an interrupt is triggered when analog to digital converter has completed a conversion. The interrupt service routine would be copy the converted value, clear the interrupt flag and trigger another the analog to digital converter to perform another conversion. 
+When a interrupt occurs in a microcontroller, it would load its program counter with the address of the interrupt service routine. It would get the address from a predefined address location in the memory space. Once the program counter is loaded, it start executing the interrupt service routine. 
 
-In a complex system, the interrupt design is divided into two halves. The top half is used to capture the interrupt event and capture the necessary information. The bottom half which is executed periodically will poll the flag and continue to process the data. For example, when data is received by the CAN peripheral, an interrupt is triggered. The interrupt service routine will copy that data from the data register of the CAN peripheral in a receive data buffer and clear the receive interrupt. That is the top half of the interrupt service routine. The bottom half would poll the "data in buffer" flag to be raised. Once detected, it would process the data in the buffer. The top half is fast code that does not take up took put too much CPU load. The bottom half is usually a lot slower and is executed periodically. This strategy has many variations and is derived from the Unix system.   
-
-From a unit test perspective, it is difficult to simulate the dynamic nature of the interrupt service routine. So each portion of the interrupt service would have to be tested separately.
+From a unit test perspective, it is difficult to simulate the dynamic nature of the interrupt service routine. However, from the code perspective, it is just like it is being called. The only difference is that no values are being passed into it.
 
 Let's take an example where the analog to digital convert interrupt is to be unit tested. It is a simple routine that would take converted value and store it into a buffer.
 
 The simple requirements are
 
-	req_ADC1: When the interrupt is triggered, the ISR shall copy the converted value into the FIFO of the ADC Manager.
-	req_ADC2: At the end of the ISR, the interrupt flag is cleared.
+	req_ADC1: When the interrupt is triggered, the interrupt service routine shall copy the converted value into the FIFO of the ADC Manager.
+	req_ADC2: At the end of the interrupt service routine, the interrupt flag is cleared.
   
 From the requirements, the inputs are
 
@@ -149,18 +147,44 @@ void adc_ISR_test_case(void)
 	{
 		bool_t expected_init_OK;
 		
+		/* setup the Status register before calling the ISR */
 		if (test_data[index].interrupt_flag_input != FALSE)
 		{
 			ADC0_SR |= (0x01 << ADC0_EOC_BIT);
 		}
 		else
 		{
-			ADC0_SR &=
-		init_pwm_return_value = test_data[index].init_pwm_return_value;
-		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
-		expected_init_OK = init_pwm_if(test_data[index].channel);
+			ADC0_SR &= ~(0x01 << ADC0_EOC_BIT);
+		}
+		ADC0_DATA = test_data[index].converted_val;
 		
-		assert(expected_init_OK == test_data[index].expected_init_OK);
+		/* execute the ISR for the conditions setup above */
+		adc_ISR();
+		
+		/* extract the resultant data */
+		interrupt_flag_out = ADC0_SR & (0x01 << ADC0_EOC_BIT);
+		data_in_fifo = get_adc_fifo_data();
+		
+		/* test if the resultant data is the same as the expected */
+		assert(ADC0_SR & (0x01 << ADC0_EOC_BIT) == test_data[index].interrupt_flag_out);
+		assert(get_adc_fifo_data() == test_data[index].data_in_fifo);
 	}
 }
 ```
+
+The two asserts are used to check that the interrupt service routine satisfies the `req_ADC1` and `req_ADC2`. During the test, the interrupt service routine will appear to be execute as though a real interrupt has occurs, however there are some differences that must be kept in mind.
+
+1. When an interrupt service routine is called, the context of the microcontroller is saved onto the stack. WHen the interrupt service routine is completed, the context is restored from the stack. Context typically means the all the values of the microcontroller's registers. The unit test's version will not do this action as it is just being treated as a function. 
+1. When the interrupt service routine is completed, it is returned normal execution with a special return instruction, something like a RETI. In most microcontroller, executing the RETI instruction will trigger some other action to clear interrupts flags.
+
+These differences are not present in your unit test, so be aware of these if it might have some influence of your software behaviour.
+
+There will other interrupt strategies that are not easily unit tested. An example would be nested interrupts, especially the scenario of returning from servicing an interrupt to servicing the routine that was interrupted. 
+
+### Accessing external memory
+
+### Dealing with watchdog reset
+
+### How to do unit test functions that has assembly code
+
+### Items that are not possible to unit tested
