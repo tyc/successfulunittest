@@ -114,8 +114,8 @@ From the requirements, the outputs are
 
 | in1    | in2     | out1    | out2    |
 | ------ |:-------:|:-------:|:-------:|
-| false  |:0x55   :|:false  :|:0xff   :|
-| true   |:0x55   :|:false  :|:0x55   :|
+| false  | 0x55    | false   | 0xff    |
+| true   | 0x55    | false   | 0x55    |
 
 
 The value used for the converted data (in2) is really a don't care, but I put in a value in there to specify that the value of copied value (out2) into the FIFO buffer needs to be the same.
@@ -174,8 +174,8 @@ void adc_ISR_test_case(void)
 
 The two asserts are used to check that the interrupt service routine satisfies the `req_ADC1` and `req_ADC2`. During the test, the interrupt service routine will appear to be execute as though a real interrupt has occurs, however there are some differences that must be kept in mind.
 
-1. When an interrupt service routine is called, the context of the microcontroller is saved onto the stack. WHen the interrupt service routine is completed, the context is restored from the stack. Context typically means the all the values of the microcontroller's registers. The unit test's version will not do this action as it is just being treated as a function. 
-1. When the interrupt service routine is completed, it is returned normal execution with a special return instruction, something like a RETI. In most microcontroller, executing the RETI instruction will trigger some other action to clear interrupts flags.
+* When an interrupt service routine is called, the context of the microcontroller is saved onto the stack. WHen the interrupt service routine is completed, the context is restored from the stack. Context typically means the all the values of the microcontroller's registers. The unit test's version will not do this action as it is just being treated as a function. 
+* When the interrupt service routine is completed, it is returned normal execution with a special return instruction, something like a RETI. In most microcontroller, executing the RETI instruction will trigger some other action to clear interrupts flags.
 
 These differences are not present in your unit test, so be aware of these if it might have some influence of your software behaviour.
 
@@ -183,7 +183,23 @@ There will other interrupt strategies that are not easily unit tested. An exampl
 
 ### Accessing external memory
 
+External memory are memory devices that are outside of the microcontroller. They can either be used for storing of code or data, and are connected via a number of ways. Traditionally, they are memory mapped and access the content is just de-referencing a pointer to it, or maybe just let the linker handler the memory allocation.
+
+If the memory devices are not accessed via a memory mapped bus and access to its content need software intervention, then the memory devices needs to be mocked. Some examples of access is via a SPI bus for relatively fast memory access, or via I2C for slower memory access.
+
+One of the common memory functions in an embedded is the non volatile memory manager. This software manager deals the accessing of data on an external memory. Think of it as saving data onto the harddisk on your PC. There are many algorithms to managing the memory, and it is beyond the scope of this book to go into its detail.
+
+For the unit test of the non volatile memory manager, a mocked memory device is needed to simulate the behaviour of the external memory device. The actual manager code will be sitting on top of the device driver of the bus connecting to the external memory device. The mocking of the external memory device is only needed to test the device driver.
+
+To easiest way is to mock the external memory access is to abstract the access to a set of macros. Even though accessing the external memory will be just like accessing a set of memory addresses, you should bear in mind that the content of the external memory also needs to be mocked. So if the device writes a value of 0x5A to address 0x10FA in the external memory device, that data in the device needs to be persistent. This is particular important if you want to test your non volatile memory manager for unwanted access and causing corruption.
+
 ### Dealing with watchdog reset
+
+A watchdog device is used to reset the microcontroller if you software is not behaving correctly. This misbehaviour would include a stack overflow and causing your software returning to an unintended address after exiting a function. The watchdog would detect this misbehaviour and reset microcontroller.
+
+The detection comes in a form an exhausted timeout period in an external device. The timeout period is reset to the zero by the software, usually by driving a logic high to the external device.
+
+Because the true testing of the watchdog is dynamic in nature, it is only possible to test the logic of the watchdog manager.    
 
 ### How to do unit test functions that has assembly code
 
