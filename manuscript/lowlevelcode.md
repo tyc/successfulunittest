@@ -193,14 +193,29 @@ For the unit test of the non volatile memory manager, a mocked memory device is 
 
 To easiest way is to mock the external memory access is to abstract the access to a set of macros. Even though accessing the external memory will be just like accessing a set of memory addresses, you should bear in mind that the content of the external memory also needs to be mocked. So if the device writes a value of 0x5A to address 0x10FA in the external memory device, that data in the device needs to be persistent. This is particular important if you want to test your non volatile memory manager for unwanted access and causing corruption.
 
-### Dealing with watchdog reset
+### Dealing with watchdog driver
 
 A watchdog device is used to reset the microcontroller if you software is not behaving correctly. This misbehaviour would include a stack overflow and causing your software returning to an unintended address after exiting a function. The watchdog would detect this misbehaviour and reset microcontroller.
 
 The detection comes in a form an exhausted timeout period in an external device. The timeout period is reset to the zero by the software, usually by driving a logic high to the external device.
 
-Because the true testing of the watchdog is dynamic in nature, it is only possible to test the logic of the watchdog manager.    
+Because the true testing of the watchdog is dynamic in nature, it is only possible to test the logic of the watchdog manager with unit test. Dynamic aspects of the watchdog is within the scope of integration testing.
+
+A well designed watchdog function is triggered from a scheduler task that is triggered periodically. If the time period is shorten or lengthen, the watchdog tickling will occur on the wrong time and cause the watchdog to generate the reset signal to the microcontroller.
+
+The test case for a watchdog would be to execute the watchdog task the correct number of times and check that the watchdog tickling function is called at the right time. For example, your watchdog function is called every 100uS, and the watchdog needs to be tickled every between 200ms and 250ms. So the ideal tickle period is 225ms. Doing the maths, after the watchdog task has been called 2250 times, the watchdog is tickled. 
 
 ### How to do unit test functions that has assembly code
+
+Doing unit test on software the contains assembly code is very difficult to get full coverage. The basic fact that the assembler is only specific to the microcontroller and is not executable on the host computer.
+
+The only way is to abstract the assembler code into a function. By using the `inline` attribute for the function declaration, the linker will put the code together as though the assembler is not abstracted to a function.
+
+
+```
+
+```
+
+
 
 ### Items that are not possible to unit tested
