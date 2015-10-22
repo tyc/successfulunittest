@@ -207,15 +207,30 @@ The test case for a watchdog would be to execute the watchdog task the correct n
 
 ### How to do unit test functions that has assembly code
 
-Doing unit test on software the contains assembly code is very difficult to get full coverage. The basic fact that the assembler is only specific to the microcontroller and is not executable on the host computer.
+Doing unit test on software the contains assembly code is very difficult to get full coverage. The basic fact that the assembler is only specific to the microcontroller and is not executable on the host computer. So the assembler code cannot be unit tested off target, and will have to be tested on the target.
 
-The only way is to abstract the assembler code into a function. By using the `inline` attribute for the function declaration, the linker will put the code together as though the assembler is not abstracted to a function.
+For off target testing, the only way is to abstract the assembler code into a function. From the unit test perspective, your function that contains the assembler code would look just like a function that needs to be mocked. Be sure that it only contains assembler code.
 
+By using the `inline` attribute for the function declaration, the linker will put the assembler code into the function as though the assembler is not abstracted to a function. This will remove any artefacts from the abstraction of the assembler code such as the usage of stack to store return addresses. 
+ 
+For example, in your software, there is a function that executes a series of assembler instructions, like the following. This assembler code is extracted to a function.
 
 ```
-
+/* a function containing some assembler code
+ */
+inline void asm_some_code(void)
+{
+	asm("mov x,z");
+	asm("bne x, 0x55");
+}
 ```
 
+If the header file that contains its function prototype, it would be
+
+```
+inline void asm_some_code(void);
+```
+
+The unit test code will include the header file, and have a mocked function for it. The mocked function will be linked into the unit test binary for execution, and not use the assembler function.
 
 
-### Items that are not possible to unit tested
