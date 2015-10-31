@@ -2,13 +2,13 @@
 
 I will go through the concepts used in unit test by going through an example. 
 
-Let's say that I need to write a software stack for controlling the PWM signal out of the microcontroller. The PWM signal is used to drive a DC motor. The duty cycle of the PWM signal. The larger the duty cycle, the faster the DC motor will run.
+Let's say that I need to write a software stack for controlling the PWM signal out of the microcontroller. The PWM signal is used to drive a DC motor. 
 
-In a typical application, the software would be used to regulate the speed of the DC motor by continuously adjust the duty cycle. The adjustments are based on the measured speed of the DC motor.
+In general, the duty cycle of the PWM signal. The larger the duty cycle, the faster the DC motor will run. In a typical application, the software would be used to regulate the speed of the DC motor by continuously adjust the duty cycle. The adjustments are based on the measured speed of the DC motor.
 
 To ease the development of the software, it is a good idea to break the software into two layers. The layer that is closer to the hardware is usually known as the device driver, and the layer above it is known as the manager or the handler. Together, they are known as a software stack. In a more complex software stack, there could be more software modules or layers.
 
-For this example, I am not going to be use a unit test framework such as Cmocka or Ceedling. I want to show the basics of constructing a unit test with all the inner workings.  
+For this example, I am not going to be use a unit test framework such as Cmocka or Ceedling. I want to show the basics of constructing a unit test with all the inner workings, so I will build the unit test using standard development methods. 
 
 ## Requirements
 
@@ -54,7 +54,7 @@ The design focus of the functions is to have a good set of functions to affect t
 
 To develop a test case, a good understanding of the environment which the software module is going to be used in is crucial. Without this understanding, the inputs will be pure nonsense to the testing.
 
-Taking the function `init_pwm_if()`, it returns a `bool_t` of TRUE if it was initialised successfully. The truth table for its operation is 
+Taking the function `init_pwm_if()`, it returns a `bool_t` of TRUE if it was initialised successfully. At the first attempt at test case design, the truth table for its operation is 
 
 | input1             | output     |
 | `pwm_if_channel_t` | `bool_t`   |
@@ -66,11 +66,13 @@ Taking the function `init_pwm_if()`, it returns a `bool_t` of TRUE if it was ini
 | `PWM_CH_MAX`       | `FALSE`    |
 | `PWM_CH_MAX + 1`   | `FALSE`    |
 
-The left hand column are the input values, and the right hand side are the return values. This truth table shows that the whole range of possible values are used. It starts from the lowest value of `PWM_CH0`, up to the maximum value of `PWM_CH_MAX`. With the C program language being used, it is based with index starting at 0. This is why a `FALSE` is returned when the input is PWM_CH_MAX. A good test is to test 1 item on either of the maximum and minimum value. This would catch the one-off bugs.
+The left hand column are the input values, and the right hand side are the return values. This truth table shows that the whole range of possible values are used. It starts from the lowest value of `PWM_CH0`, up to the maximum value of `PWM_CH_MAX`. With the C program language being used, it is based with index starting at 0. This is why a `FALSE` is returned when the input is PWM_CH_MAX. A good test is to test one item on either side of the maximum and minimum value. This would catch the "one-off" bugs.
 
 The function description of the `init_pwm_if()` indicates the lower level MCAL is also initialised. In the unit test, a mock function is used to simulate the initialisation of the PWM peripheral. In your mock function, a flag is set to indicate that it has been called.
 
-So far, we have only consider inputs coming into the software module via the caller. There is also inputs coming into the software module on lower level functions. As mentioned before, it calls the microcontroller's peripheral. In this case, it calls `init_pwm()` to initialise peripheral. `init_pwm()` returns a boolean. It has the function prototype of
+So far, we have only consider inputs coming into the software module via the caller. There is also inputs coming into the software module on lower level functions. So the initial truth table only consider the inputs and outputs from the function signature's perspective. The influences on returns from called functions need to be considered as well.
+
+As mentioned before, it calls the microcontroller's peripheral. In this case, it calls `init_pwm()` to initialise the peripheral. `init_pwm()` returns a boolean. It has the function prototype of
 
     bool_t init_pwm(pwm_channel_t channel);
     
@@ -87,11 +89,11 @@ The truth table now becomes
 | `PWM_CH_MAX + 1`   | `don't care`           | `FALSE`      |
 | `don't care`       | `FALSE`                | `FALSE`      |
 
-When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if()` is always a FALSE. It does not matter what value is passed into `init_pwm_if()`, this is indicated as a `don't care`.
+When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if()` is always a FALSE. It does not matter what value is passed into `init_pwm_if()`, this type of inputs is indicated as a `don't care`.
 
-The requirement for `init_pwm_if()` is that it is must only be initialised once before it it is de-initialised. Further initialisation is forbidden. In a real world example, if the PWM is initialsed when it is operating, it could cause serious damage if it was controlling machinery. So it is critical if there is a catch in the code for this scenario. Internal of `init_pwm_if()` is a flag that indicates if initialisation had occurred. If it is TRUE when initialisation is called, `init_pwm_if()` will return a FALSE.
+The requirement for `init_pwm_if()` is that it is must only be initialised once before it it is de-initialised. Further initialisation is forbidden. In a real world example, if the PWM is initialised when it is operating, it could cause serious damage if it was controlling machinery. So it is critical that there is a catch in the code for this scenario. Internal of `init_pwm_if()` is a flag that indicates if initialisation had occurred. If it is TRUE when initialisation is called, `init_pwm_if()` will return a FALSE.
 
-The truth table now becomes
+The truth table must be extended to become
 
 | input1             | input2                 | input3             | output       |
 | `channel`          | return from init_pwm() | flag for reinit    | `bool_t`     |
@@ -109,7 +111,7 @@ Instead of a reinit flag, there could also be a counter in the mock function to 
 
 ## Getting access to internal variables
 
-In the function `init_pwm_if()`, the variable `init_pwm_reinit_flag` is used by pwm stack to block its re-initialisation. The proper implementation is for this variable to be local to the pwm stack, so for the purpose unit test, this makes `init_pwm_reinit_flag` inaccessible. There are options to get around this problem
+In the function `init_pwm_if()`, the variable `init_pwm_reinit_flag` is used by PWM stack to block its re-initialisation. The proper implementation is for this variable to be local to the PWM stack, so for the purpose unit test, this makes `init_pwm_reinit_flag` inaccessible. There are options to get around this problem
 
 ### Helper set/get function
 
@@ -132,11 +134,11 @@ These two functions are only compiled when `__UNITTEST__` are defined.
 
 ### A macro for STATIC
 
-The variable `init_pwm_reinit_flag` is declared as 
+The variable `init_pwm_reinit_flag` is declared with the `static` keyword to keep it local. 
 
 	static bool_t init_pwm_reinit_flag = FALSE;
 	
-To make it accessible to other software modules, it needs to be declared without the `static` keyword such as 
+To make it accessible to other software modules such as the unit test code, it needs to be declared without the `static` keyword such as 
 
 	bool_t init_pwm_reinit_flag = FALSE;
 	
@@ -199,6 +201,8 @@ void init_pwm_if_test_case(void)
 		bool_t expected_init_OK;
 	} test_data_t;
 	
+	/* set up the test data. It is based the truth table.
+	 */
 	test_data_t test_data[] =
 	{
 		{PWM_CH0-1, 	TRUE, FALSE, FALSE},
@@ -206,21 +210,29 @@ void init_pwm_if_test_case(void)
 		{PWM_CH0+1, 	TRUE, FALSE, TRUE},
 		{PWM_CH_MAX-1,  TRUE, FALSE, TRUE},
 		{PWM_CH_MAX, 	TRUE, FALSE, FALSE},
-		{PWM_CH_MAX+1,  	TRUE, FALSE, FALSE},
+		{PWM_CH_MAX+1,	TRUE, FALSE, FALSE},
 		{PWM_CH0+1, 	FALSE, FALSE, FALSE},
 		{PWM_CH0+1, 	FALSE, TRUE, FALSE},
 	};
 	
+	
+	/* set up the loop to iterate over all the each combination
+	 * of the test data in the truth table.
+	 */
 	for ( 	index = 0;
 			index < (sizeof(test_data)/sizeof(test_data[0]));
 			index++
 		)
 	{
+		/* setup the inputs into the function under test */
 		bool_t expected_init_OK;
 		init_pwm_return_value = test_data[index].init_pwm_return_value;
 		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
+		
+		/* execute the function */
 		expected_init_OK = init_pwm_if(test_data[index].channel);
 		
+		/* check that the result is the same as the expected */ 
 		assert(expected_init_OK == test_data[index].expected_init_OK);
 	}
 }
@@ -228,7 +240,7 @@ void init_pwm_if_test_case(void)
 
 So pattern for writing a unit test is pretty straight forward. The concept is to iterate a set of inputs and check that the response from it is the same as the expected. The test code above has this pattern.
 
-So breaking the test script to its parts, at the start of the test script, a struct is created to contain the inputs and the expected output. Give the members meaningful names rather than `input1`, `input2` and `input3`. The meaningful names will allow the test code to be read easily. In this example, there are three inputs and one output. Ensure that the member the same type of the tested parameters. The struct is local to this particular test case. For each test case, create a struct suitable for your test.
+So breaking the test script to its parts, at the start of the test script, a struct is created to contain the inputs and the expected outputs. Give the members meaningful names rather than `input1`, `input2` and `input3`. The meaningful names will allow the test code to be read easily. In this example, there are three inputs and one output. Ensure that the member is the same type of the tested parameters. The struct is local to this particular test case. For each test case, create a struct suitable for your test.
 
 	typedef struct 
 	{
@@ -247,37 +259,41 @@ The variable `init_pwm_reinit_value` is used to configure the mock function if i
 
 The construction of the test code should be next. It is constructed as a `for` loop where the test data is iterated over by the test code. It iterates for the entire dataset.
  
+	/* set up the loop to iterate over all the each combination
+	 * of the test data in the truth table.
+	 */
 	for ( 	index = 0;
 			index < (sizeof(test_data)/sizeof(test_data[0]));
 			index++
 		)
 	{
+		/* setup the inputs into the function under test */
 		bool_t expected_init_OK;
 		init_pwm_return_value = test_data[index].init_pwm_return_value;
 		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
+		
+		/* execute the function */
 		expected_init_OK = init_pwm_if(test_data[index].channel);
 		
+		/* check that the result is the same as the expected */ 
 		assert(expected_init_OK == test_data[index].expected_init_OK);
 	}
 
-The code within the `for` loop does the actual testing. At the start of the loop, it configures the mocked objects for the return values, calls the function under tests. It checks that the return values are correct. The checking is via the `assert_true()` macro, an assertion is generated if the test clause evaluates to a FALSE. 
+The code within the `for` loop does the actual testing. At the start of the loop, it configures the mocked objects for the return values, calls the function under tests. It checks that the return values are correct. The checking is via the `assert()` macro, an assertion is generated if the test clause evaluates to a FALSE. 
 
 ## Building the code
 
-To execute the test, it is necessary to build the binary. I have adopted a simple makefile to build the binary. It is clear and simple to see what is going on.
-
-Assuming that you are using clang, you can compile the binary using the following command.
+To execute the test, it is necessary to build the binary. Assuming that you are using clang, you can compile the binary using the following command.
 
 	clang -I../../include -I../MCAL pwm_if_test.c pwm_if.c -o unittest
   
-
 The include paths as specified by the `-I` option specifies where the headers are. Feel free to change them for your setup. In this example, it is including the header for the` pwm.h `by including the `MCAL` directory, and it is including `std_types.h` from the `include` directory.
 
 If the unit test passes, no assertion will be generated. An assertion triggered off is a failed test case.
 
 ## Test coverage
 
-For this test case, it is important to check the tode coverage is adequate. This is a question that needs to be constantly asked, and the initial target is always 100% coverage for code and branch. If neither of these two metrics are at 100% coverage when you release the software module, there are gaps in the code that were not tested.
+For this test case, it is important to check the code coverage is adequate. This is a question that needs to be constantly asked, and the initial target is always 100% coverage for code and branch. If neither of these two metrics are at 100% coverage when you release the software module, there are gaps in the code that are not tested.
 
 The analysis for the test coverage is highly dependent on the implementation of the code. 
 
@@ -305,7 +321,9 @@ The implementation for `init_pwm_if()` is as follows
 		return (retVal);
 	}
 	
-Performing manual test coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage. You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `--coverage`, your software module will be linked with code coverage data, and it will be automatically measured when the software module is executed. This is using the `gcov` features of the GNU toolchain.
+Performing manual test coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage. 
+
+You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `--coverage`, your software module will be linked with code coverage data, and it will be automatically measured when the software module is executed. This is using the `gcov` features of the GNU toolchain. By the way, even though clang is not part of the GNU toolchain, it is compatible with `gcov`.
 
 With the command line build, it would become 
 
@@ -378,4 +396,4 @@ The file `pwm_if.c.gcov` has the details per line of code. Showing the details f
 	        
 The number of times the line of code has executed is shown next to code's line number in the source code. One of the interesting metric is the branch metric. It must add up to 100% for all the different branches, and none of the branches must be 0% taken. If one of the branch is at 0%, the branch coverage is not 100% and more inputs must be created to achieve 100% branch coverage.
 
-With a more complex function, this type of code coverage measurement tools will help reduce effort required. It is much better and less error prone when compared measuring it manually. Z
+With a more complex function, this type of code coverage measurement tools will help reduce effort required. It is much better and less error prone when compared measuring it manually. 
