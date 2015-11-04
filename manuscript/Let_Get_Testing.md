@@ -397,3 +397,33 @@ The file `pwm_if.c.gcov` has the details per line of code. Showing the details f
 The number of times the line of code has executed is shown next to code's line number in the source code. One of the interesting metric is the branch metric. It must add up to 100% for all the different branches, and none of the branches must be 0% taken. If one of the branch is at 0%, the branch coverage is not 100% and more inputs must be created to achieve 100% branch coverage.
 
 With a more complex function, this type of code coverage measurement tools will help reduce effort required. It is much better and less error prone when compared measuring it manually. 
+
+## Getting better coverage
+
+As the summary indicated, other than `init_pwm()`, the rest of the functions in the PWM stack are not even executed. Lets continue designing the test cases for the rest of the functions with `set_pwm_if()`. Looking at the requirements, the following three requirements are allocated to `set_pwm_if()`.
+
+    req_PWM1: The PWM driver shall only allow a frequency from 50Hz to 500Hz.
+    req_PWM2: The PWM driver shall only allow a duty cycle from 10% to 90%.
+    req_PWM3: When PWM driver receives request out of the allowable frequencies and duty cycles, it shall reject the request and the output signal does not change.
+    
+and the prototype for set_pwm_if() is 
+
+	bool_t set_pwm_if(pwm_if_channel_t channel, pwm_if_signal_t signal);
+	
+The data type of pwm_if_signal_t contains two members of frequency and duty cycle. These two data affects the signal, so it is logical for them to be together. What this really means is that this is actually two inputs rather than the one input.
+
+	typedef struct
+	{
+		uint16_t frequency;
+		uint8_t duty_cycle;
+	} pwm_if_signal_t;
+
+
+Other than the `bool_t` being returned which indicates if the signal was set correctly, the other outputs is the calling of `set_pwm()` to the driver layer. In the mocked `set_pwm()`, a flag will need to be set so that its calling is captured, and this also forms part of the output in the truth table.
+
+| input1             | input2      | input3                     | output                   | output
+| `frequency`        | duty_cycle  | return flag for set_pwm()  | flag for calling set_pwn | return from function call
+| ------------------ |:-----------:|:--------------------------:|:------------------------:|:------------:|
+
+
+ 
