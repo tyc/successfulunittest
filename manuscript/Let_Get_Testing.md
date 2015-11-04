@@ -144,7 +144,7 @@ To make it accessible to other software modules such as the unit test code, it n
 	
 To satisfy both requirement, `static` can be replaced with a macro. So in `std_types.h`, there is a definition of 
 
-	#if defined(__UNITTEST__)
+    #if defined(__UNITTEST__)
 	
 	#define STATIC
 	
@@ -419,11 +419,96 @@ The data type of pwm_if_signal_t contains two members of frequency and duty cycl
 	} pwm_if_signal_t;
 
 
-Other than the `bool_t` being returned which indicates if the signal was set correctly, the other outputs is the calling of `set_pwm()` to the driver layer. In the mocked `set_pwm()`, a flag will need to be set so that its calling is captured, and this also forms part of the output in the truth table.
+Other than the `bool_t` being returned which indicates if the signal was set correctly, the other outputs are the calling of `set_pwm()` to the driver layer. In the mocked `set_pwm()`, a flag will need to be set so that its calling is captured, and this also forms part of the output in the truth table.
 
-| input1             | input2      | input3                     | output                   | output
-| `frequency`        | duty_cycle  | return flag for set_pwm()  | flag for calling set_pwn | return from function call
-| ------------------ |:-----------:|:--------------------------:|:------------------------:|:------------:|
+| input1             | input2      |input3   | input4                     | output                     | output
+| `frequency`        | duty_cycle  |channel  | return flag for set_pwm()  | flag for calling set_pwn() | return from function call
+| ------------------ |:-----------:|:-------:|:--------------------------:|:--------------------------:|:------------:|
+| 50                 | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
+| 49                 | 10          | PWM_CH0 | dont care                  |dont care                   | FALSE        |
+| 51                 | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
+| 499                | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
+| 500                | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
+| 501                | 10          | PWM_CH0 | dont care                  |dont care                   | FALSE        |
+| 50                 | 9           | PWM_CH0 | dont care                  |dont care                   | FALSE        |
+| 50                 | 11          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
+| 50                 | 89          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
+| 50                 | 90          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
+| 50                 | 91          | PWM_CH0 | dont care                  |dont care                   | FALSE        |
+| 50                 | 90          | PWM_CH0 | FALSE                      |TRUE                        | FALSE        |
+
+The truth table is constructed based upon the requirements of req_PWM1, req_PWM2 and req_PWM3. The values for frequeny and duty cycle are chosen for 1 on either side of the limits. The limits are classifed to be valid as per the requirements.
+
+With these test cases, the test code is shown. The structure is the same as `init_pwm_if_test_case()`. It follows the following pattern.
+
+1. A `struct` defined to contain all data in the test case.
+2. A loop is created to iterate through each test case. 
+3. For a test case, the inputs are configured with its data. 
+4. The function under test is called.
+5. The return is checked via an assert against the return from the function under test. The activity flag from the calling of `set_pwm()` is also checked via an assert.
 
 
- 
+
+```
+bool_t init_pwm_return_value = FALSE;
+extern bool_t init_pwm_reinit_flag;
+
+/** Mock function for init_pwm() */
+bool_t set_pwm(pwm_channel_t channel, pwm_signal_t signal)
+{
+	
+	return (retVal);
+}
+
+/** test case for set_pwm_if() */
+void set_pwm_if_test(void)
+{
+	uint8 index;
+	
+	typedef struct 
+	{
+		/* inputs */
+		pwm_if_channel_t channel;
+		bool_t init_pwm_return_value;
+		bool_t init_pwm_reinit_flag;
+		
+		/* output */
+		bool_t expected_init_OK;
+	} test_data_t;
+	
+	/* set up the test data. It is based the truth table.
+	 */
+	test_data_t test_data[] =
+	{
+		{PWM_CH0-1, 	TRUE, FALSE, FALSE},
+		{PWM_CH0,   	TRUE, FALSE, TRUE},
+		{PWM_CH0+1, 	TRUE, FALSE, TRUE},
+		{PWM_CH_MAX-1,  TRUE, FALSE, TRUE},
+		{PWM_CH_MAX, 	TRUE, FALSE, FALSE},
+		{PWM_CH_MAX+1,	TRUE, FALSE, FALSE},
+		{PWM_CH0+1, 	FALSE, FALSE, FALSE},
+		{PWM_CH0+1, 	FALSE, TRUE, FALSE},
+	};
+	
+	
+	/* set up the loop to iterate over all the each combination
+	 * of the test data in the truth table.
+	 */
+	for ( 	index = 0;
+			index < (sizeof(test_data)/sizeof(test_data[0]));
+			index++
+		)
+	{
+		/* setup the inputs into the function under test */
+		bool_t expected_init_OK;
+		init_pwm_return_value = test_data[index].init_pwm_return_value;
+		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
+		
+		/* execute the function */
+		expected_init_OK = init_pwm_if(test_data[index].channel);
+		
+		/* check that the result is the same as the expected */ 
+		assert(expected_init_OK == test_data[index].expected_init_OK);
+	}
+}
+```
