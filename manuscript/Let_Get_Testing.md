@@ -464,33 +464,38 @@ bool_t set_pwm(pwm_channel_t channel, pwm_signal_t signal)
 void set_pwm_if_test(void)
 {
 	uint8 index;
-	
-	typedef struct 
+
+	typedef struct
 	{
 		/* inputs */
-		pwm_if_channel_t channel;
-		bool_t init_pwm_return_value;
-		bool_t init_pwm_reinit_flag;
-		
+		pwm_signal_t signal;		/* for freq and duty cycle */
+		pwm_channel_t channel;
+		bool_t return_for_set_pwm;
+
 		/* output */
-		bool_t expected_init_OK;
+		bool_t flag_calling_set_pwm;
+		bool_t return_from_function_call;
 	} test_data_t;
-	
+
 	/* set up the test data. It is based the truth table.
 	 */
 	test_data_t test_data[] =
 	{
-		{PWM_CH0-1, 	TRUE, FALSE, FALSE},
-		{PWM_CH0,   	TRUE, FALSE, TRUE},
-		{PWM_CH0+1, 	TRUE, FALSE, TRUE},
-		{PWM_CH_MAX-1,  TRUE, FALSE, TRUE},
-		{PWM_CH_MAX, 	TRUE, FALSE, FALSE},
-		{PWM_CH_MAX+1,	TRUE, FALSE, FALSE},
-		{PWM_CH0+1, 	FALSE, FALSE, FALSE},
-		{PWM_CH0+1, 	FALSE, TRUE, FALSE},
+		{{50, 	10}, PWM_CH0, TRUE,	TRUE,	TRUE },
+		{{49, 	10}, PWM_CH0, TRUE, TRUE,	FALSE},
+		{{51, 	10}, PWM_CH0, TRUE, TRUE,	TRUE },
+		{{499,	10}, PWM_CH0, TRUE, TRUE,	TRUE },
+		{{500,	10}, PWM_CH0, TRUE, TRUE,	TRUE },
+		{{501,	10}, PWM_CH0, TRUE, TRUE,	FALSE},
+		{{50,	9},  PWM_CH0, TRUE, TRUE,	FALSE},
+		{{50,	11}, PWM_CH0, TRUE, TRUE,	TRUE },
+		{{50,	89}, PWM_CH0, TRUE, TRUE,	TRUE },
+		{{50,	90}, PWM_CH0, TRUE, TRUE,	TRUE },
+		{{50,	91}, PWM_CH0, TRUE, TRUE,	FALSE},
+		{{50,	90}, PWM_CH0, FALSE,TRUE,	FALSE},
 	};
-	
-	
+
+
 	/* set up the loop to iterate over all the each combination
 	 * of the test data in the truth table.
 	 */
@@ -500,15 +505,19 @@ void set_pwm_if_test(void)
 		)
 	{
 		/* setup the inputs into the function under test */
-		bool_t expected_init_OK;
-		init_pwm_return_value = test_data[index].init_pwm_return_value;
-		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
-		
+		bool_t return_from_function_call;
+
+		return_value_for_set_pwm = test_data[index].return_for_set_pwm;
+		flag_calling_set_pwm = FALSE;
+
 		/* execute the function */
-		expected_init_OK = init_pwm_if(test_data[index].channel);
-		
-		/* check that the result is the same as the expected */ 
-		assert(expected_init_OK == test_data[index].expected_init_OK);
+		expected_init_OK = set_pwm_if(
+				test_data[index].channel,
+				test_data[index].signal);
+
+		/* check that the result is the same as the expected */
+		assert(return_from_function_call == test_data[index].return_from_function_call);
+		assert(flag_calling_set_pwm == test_data[index].flag_calling_set_pwm);
 	}
 }
 ```
