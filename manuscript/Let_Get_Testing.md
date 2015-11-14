@@ -186,23 +186,21 @@ bool_t init_pwm(pwm_channel_t channel)
 }
 
 /** test case for init_pwm_if() */
-void init_pwm_if_test_case(void)
+static void init_pwm_if_test_case(void)
 {
-	uint8 index;
-	
-	typedef struct 
+	uint8_t index;
+
+	typedef struct
 	{
 		/* inputs */
-		pwm_if_channel_t channel;
+		pwm_channel_t channel;
 		bool_t init_pwm_return_value;
 		bool_t init_pwm_reinit_flag;
-		
+
 		/* output */
 		bool_t expected_init_OK;
 	} test_data_t;
-	
-	/* set up the test data. It is based the truth table.
-	 */
+
 	test_data_t test_data[] =
 	{
 		{PWM_CH0-1, 	TRUE, FALSE, FALSE},
@@ -210,30 +208,22 @@ void init_pwm_if_test_case(void)
 		{PWM_CH0+1, 	TRUE, FALSE, TRUE},
 		{PWM_CH_MAX-1,  TRUE, FALSE, TRUE},
 		{PWM_CH_MAX, 	TRUE, FALSE, FALSE},
-		{PWM_CH_MAX+1,	TRUE, FALSE, FALSE},
+		{PWM_CH_MAX+1, 	TRUE, FALSE, FALSE},
 		{PWM_CH0+1, 	FALSE, FALSE, FALSE},
 		{PWM_CH0+1, 	FALSE, TRUE, FALSE},
 	};
-	
-	
-	/* set up the loop to iterate over all the each combination
-	 * of the test data in the truth table.
-	 */
+
 	for ( 	index = 0;
 			index < (sizeof(test_data)/sizeof(test_data[0]));
 			index++
 		)
 	{
-		/* setup the inputs into the function under test */
-		bool_t expected_init_OK;
+		bool_t output;
 		init_pwm_return_value = test_data[index].init_pwm_return_value;
 		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
-		
-		/* execute the function */
-		expected_init_OK = init_pwm_if(test_data[index].channel);
-		
-		/* check that the result is the same as the expected */ 
-		assert(expected_init_OK == test_data[index].expected_init_OK);
+		output = init_pwm_if(test_data[index].channel);
+
+		assert(output == test_data[index].expected_init_OK);
 	}
 }
 ```
@@ -242,42 +232,46 @@ So pattern for writing a unit test is pretty straight forward. The concept is to
 
 So breaking the test script to its parts, at the start of the test script, a struct is created to contain the inputs and the expected outputs. Give the members meaningful names rather than `input1`, `input2` and `input3`. The meaningful names will allow the test code to be read easily. In this example, there are three inputs and one output. Ensure that the member is the same type of the tested parameters. The struct is local to this particular test case. For each test case, create a struct suitable for your test.
 
-	typedef struct 
-	{
-		/* inputs */
-		pwm_channel_t channel;
-		bool_t init_pwm_return_value;
-		bool_t init_pwm_reinit_flag;
-		
-		/* output */
-		bool_t expected_init_OK;
-	} test_data_t;
+```
+typedef struct
+{
+	/* inputs */
+	pwm_channel_t channel;
+	bool_t init_pwm_return_value;
+	bool_t init_pwm_reinit_flag;
+
+	/* output */
+	bool_t expected_init_OK;
+} test_data_t;
+```
 
 The variable `init_pwm_return_value` is used to configure the return value of the mock function. In this case, the mock function `init_pwm()` will return the value `init_pwm_return_value`. So make sure that the type of `init_pwm_return_value` has the same type as the return type of `init_pwm()`.
 
 The variable `init_pwm_reinit_value` is used to configure the mock function if it has been initialised or not. If it is set to TRUE, the mock function will behave as if it has been initalised.
 
 The construction of the test code should be next. It is constructed as a `for` loop where the test data is iterated over by the test code. It iterates for the entire dataset.
- 
-	/* set up the loop to iterate over all the each combination
-	 * of the test data in the truth table.
-	 */
-	for ( 	index = 0;
-			index < (sizeof(test_data)/sizeof(test_data[0]));
-			index++
-		)
-	{
-		/* setup the inputs into the function under test */
-		bool_t expected_init_OK;
-		init_pwm_return_value = test_data[index].init_pwm_return_value;
-		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
-		
-		/* execute the function */
-		expected_init_OK = init_pwm_if(test_data[index].channel);
-		
-		/* check that the result is the same as the expected */ 
-		assert(expected_init_OK == test_data[index].expected_init_OK);
-	}
+
+``` 
+/* set up the loop to iterate over all the each combination
+ * of the test data in the truth table.
+ */
+for ( 	index = 0;
+		index < (sizeof(test_data)/sizeof(test_data[0]));
+		index++
+	)
+{
+	/* setup the inputs into the function under test */
+	bool_t expected_init_OK;
+	init_pwm_return_value = test_data[index].init_pwm_return_value;
+	init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
+	
+	/* execute the function */
+	expected_init_OK = init_pwm_if(test_data[index].channel);
+	
+	/* check that the result is the same as the expected */ 
+	assert(expected_init_OK == test_data[index].expected_init_OK);
+}
+```
 
 The code within the `for` loop does the actual testing. At the start of the loop, it configures the mocked objects for the return values, calls the function under tests. It checks that the return values are correct. The checking is via the `assert()` macro, an assertion is generated if the test clause evaluates to a FALSE. 
 
@@ -287,13 +281,13 @@ To execute the test, it is necessary to build the binary. Assuming that you are 
 
 	clang -I../../include -I../MCAL pwm_if_test.c pwm_if.c -o unittest
   
-The include paths as specified by the `-I` option specifies where the headers are. Feel free to change them for your setup. In this example, it is including the header for the` pwm.h `by including the `MCAL` directory, and it is including `std_types.h` from the `include` directory.
+The include paths as specified by the `-I` option specifies where the headers are. Feel free to change them for your setup. In this example, it is including the header for the `pwm.h` by including the `MCAL` directory, and it is including `std_types.h` from the `include` directory.
 
 If the unit test passes, no assertion will be generated. An assertion triggered off is a failed test case.
 
 ## Test coverage
 
-For this test case, it is important to check the code coverage is adequate. This is a question that needs to be constantly asked, and the initial target is always 100% coverage for code and branch. If neither of these two metrics are at 100% coverage when you release the software module, there are gaps in the code that are not tested.
+For this test case, it is important to check the code coverage is adequate. This is a question that needs to be constantly asked, and the initial target is always 100% coverage for code and branch. If neither of these two metrics are not at 100% coverage when you release the software module, there are gaps in the code that are not tested.
 
 The analysis for the test coverage is highly dependent on the implementation of the code. 
 
@@ -321,7 +315,7 @@ The implementation for `init_pwm_if()` is as follows
 		return (retVal);
 	}
 	
-Performing manual test coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage. 
+Performing manual test coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage.
 
 You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `--coverage`, your software module will be linked with code coverage data, and it will be automatically measured when the software module is executed. This is using the `gcov` features of the GNU toolchain. By the way, even though clang is not part of the GNU toolchain, it is compatible with `gcov`.
 

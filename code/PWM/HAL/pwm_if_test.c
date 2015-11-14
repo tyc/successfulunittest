@@ -9,6 +9,12 @@
 bool_t init_pwm_return_value = FALSE;
 extern bool_t init_pwm_reinit_flag;
 
+bool_t flag_calling_set_frequency = FALSE;
+bool_t flag_calling_set_duty_cycle = FALSE;
+
+bool_t return_for_set_frequency = FALSE;
+bool_t return_for_set_duty_cycle = FALSE;
+
 /***********************************************************************
  * mock functions
  ***********************************************************************
@@ -37,24 +43,26 @@ bool_t deinit_pwm(pwm_channel_t channel)
 
 bool_t set_frequency_pwm(uint16_t frequency, pwm_channel_t channel)
 {
-	bool_t retVal = FALSE;
 	if (channel < PWM_CH_MAX)
 	{
 		frequency = 0;
-		retVal = TRUE;
 	}
-	return (retVal);
+
+	flag_calling_set_frequency = TRUE;
+
+	return (return_for_set_duty_cycle);
 }
 
 bool_t set_duty_cycle_pwm(uint8_t duty_cycle, pwm_channel_t channel)
 {
-	bool_t retVal = FALSE;
 	if (channel < PWM_CH_MAX)
 	{
 		duty_cycle = 0;
-		retVal = TRUE;
 	}
-	return (retVal);
+
+	flag_calling_set_duty_cycle = TRUE;
+
+	return (return_for_set_frequency);
 }
 
 uint16_t get_frequency_pwm(pwm_channel_t channel)
@@ -126,23 +134,22 @@ static void init_pwm_if_test_case(void)
 }
 
 
-bool_t init_pwm_return_value = FALSE;
-extern bool_t init_pwm_reinit_flag;
-
 /** test case for set_pwm_if() */
-void set_pwm_if_test(void)
+void set_pwm_if_test_case(void)
 {
-	uint8 index;
+	uint8_t index;
 
 	typedef struct
 	{
 		/* inputs */
-		pwm_signal_t signal;		/* for freq and duty cycle */
+		pwm_if_signal_t signal;		/* for freq and duty cycle */
 		pwm_channel_t channel;
-		bool_t return_for_set_pwm;
+		bool_t return_for_set_frequency;
+		bool_t return_for_set_duty_cycle;
 
 		/* output */
-		bool_t flag_calling_set_pwm;
+		bool_t flag_calling_set_frequency;
+		bool_t flag_calling_set_duty_cycle;
 		bool_t return_from_function_call;
 	} test_data_t;
 
@@ -150,18 +157,18 @@ void set_pwm_if_test(void)
 	 */
 	test_data_t test_data[] =
 	{
-		{{50, 	10}, PWM_CH0, TRUE,		TRUE,	TRUE },
-		{{49, 	10}, PWM_CH0, TRUE, 	TRUE,	FALSE},
-		{{51, 	10}, PWM_CH0, TRUE,     TRUE,	TRUE },
-		{{499,	10}, PWM_CH0, TRUE,     TRUE,	TRUE },
-		{{500,	10}, PWM_CH0, TRUE,     TRUE,	TRUE },
-		{{501,	10}, PWM_CH0, TRUE, 	TRUE,	FALSE},
-		{{50,	9 }, PWM_CH0, TRUE, 	TRUE,	FALSE},
-		{{50,	11}, PWM_CH0, TRUE,     TRUE,	TRUE },
-		{{50,	89}, PWM_CH0, TRUE,     TRUE,	TRUE },
-		{{50,	90}, PWM_CH0, TRUE,     TRUE,	TRUE },
-		{{50,	91}, PWM_CH0, TRUE, 	TRUE,	FALSE},
-		{{50,	90}, PWM_CH0, FALSE,    TRUE,	FALSE},
+		{{50, 	10}, PWM_CH0, TRUE,	TRUE,	TRUE,	TRUE,	TRUE },
+		{{49, 	10}, PWM_CH0, TRUE, TRUE, 	FALSE,	FALSE,	FALSE},
+		{{51, 	10}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{499,	10}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{500,	10}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{501,	10}, PWM_CH0, TRUE, TRUE, 	FALSE,	FALSE,	FALSE},
+		{{50,	9 }, PWM_CH0, TRUE, TRUE, 	FALSE,	FALSE,	FALSE},
+		{{50,	11}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{50,	89}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{50,	90}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{50,	91}, PWM_CH0, TRUE, TRUE, 	FALSE,	FALSE,	FALSE},
+		{{50,	90}, PWM_CH0, FALSE,FALSE,  TRUE,	FALSE,	FALSE},
 	};
 
 
@@ -176,17 +183,20 @@ void set_pwm_if_test(void)
 		/* setup the inputs into the function under test */
 		bool_t return_from_function_call;
 
-		return_value_for_set_pwm = test_data[index].return_for_set_pwm;
-		flag_calling_set_pwm = FALSE;
+		return_for_set_frequency = test_data[index].return_for_set_frequency;
+		return_for_set_duty_cycle = test_data[index].return_for_set_duty_cycle;
+		flag_calling_set_frequency = FALSE;
+		flag_calling_set_duty_cycle = FALSE;
 
 		/* execute the function */
-		expected_init_OK = set_pwm_if(
+		return_from_function_call = set_pwm_if(
 				test_data[index].channel,
 				test_data[index].signal);
 
 		/* check that the result is the same as the expected */
 		assert(return_from_function_call == test_data[index].return_from_function_call);
-		assert(flag_calling_set_pwm == test_data[index].flag_calling_set_pwm);
+		assert(flag_calling_set_frequency == test_data[index].flag_calling_set_frequency);
+		assert(flag_calling_set_duty_cycle == test_data[index].flag_calling_set_duty_cycle);
 	}
 }
 
@@ -195,6 +205,7 @@ void set_pwm_if_test(void)
 int main(void) {
 
 	init_pwm_if_test_case();
+	set_pwm_if_test_case();
 
 	return (0);
 }

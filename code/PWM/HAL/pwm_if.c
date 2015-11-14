@@ -10,8 +10,8 @@
 #include "pwm.h"
 #include "pwm_if.h"
 
-#define MIN_FREQUENCY_PWM_IF		25
-#define MAX_FREQUENCY_PWM_IF		4000
+#define MIN_FREQUENCY_PWM_IF		50
+#define MAX_FREQUENCY_PWM_IF		500
 #define MIN_DUTY_CYCLE_PWM_IF		10
 #define MAX_DUTY_CYCLE_PWM_IF		90
 #define FREQUENCY_OFFSET			20
@@ -59,17 +59,22 @@ bool_t set_pwm_if(pwm_if_channel_t channel, pwm_if_signal_t signal)
 
 	if (channel < PWM_CH_MAX)
 	{
-		if ((signal.frequency > MIN_FREQUENCY_PWM_IF) &&
-			(signal.frequency < MAX_FREQUENCY_PWM_IF))
+		if ((signal.frequency >= MIN_FREQUENCY_PWM_IF) &&
+			(signal.frequency <= MAX_FREQUENCY_PWM_IF))
 		{
-			if ((signal.duty_cycle > MIN_DUTY_CYCLE_PWM_IF) &&
-				(signal.duty_cycle < MAX_DUTY_CYCLE_PWM_IF))
+			if ((signal.duty_cycle >= MIN_DUTY_CYCLE_PWM_IF) &&
+				(signal.duty_cycle <= MAX_DUTY_CYCLE_PWM_IF))
 			{
 				signal.frequency = signal.frequency + FREQUENCY_OFFSET;
-				set_frequency_pwm(signal.frequency, channel);
-				set_duty_cycle_pwm(signal.duty_cycle, channel);
-
-				retVal = TRUE;
+				if ((set_frequency_pwm(signal.frequency, channel) == TRUE) &&
+					(set_duty_cycle_pwm(signal.duty_cycle, channel) == TRUE))
+				{
+					retVal = TRUE;
+				}
+				else
+				{
+					retVal = FALSE;
+				}
 			}
 		}
 	}
