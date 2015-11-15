@@ -21,8 +21,8 @@ Let's start by laying out the requirements so that we know what is to be built.
     req_PWM5: The tolerance of the PWM signal is 5% of the requested.
     req_PWM6: The PWM signal will update its speed based upon the measured speed of the DC motor.
     req_PWM7: The speed of the DC motor is to be regulated to 5% of the intended speed. The relationship between the RPM speed of the motor to duty cycle is PWM speed is the RPM increase at 75% of duty cycle. 
-    req_PWM9: The PWM driver shall not consume more than 1KByte of code space.
-    req_PWM10: The PWM driver shall not consume more than 5% of its allocate time slot.
+    req_PWM8: The PWM driver shall not consume more than 1KByte of code space.
+    req_PWM9: The PWM driver shall not consume more than 5% of its allocate time slot.
     
 This set of requirements are only developed to show the benefit of unit tests. Some of the may not actually work in a real world software stack.
 
@@ -441,33 +441,25 @@ With these test cases, the test code is shown. The structure is the same as `ini
 4. The function under test is called.
 5. The return is checked via an assert against the return from the function under test. The activity flag from the calling of `set_pwm()` is also checked via an assert.
 
-
+In the test code below, the `set_pwm()` is actually made up of two functions, one for setting the frequency and another for setting the duty cycle. For each of these functions, a flag is used to indicated that the function has been called and a flag to indicate what value to returned from its calling.
 
 ```
-bool_t init_pwm_return_value = FALSE;
-extern bool_t init_pwm_reinit_flag;
-
-/** Mock function for init_pwm() */
-bool_t set_pwm(pwm_channel_t channel, pwm_signal_t signal)
-{
-	
-	return (retVal);
-}
-
 /** test case for set_pwm_if() */
-void set_pwm_if_test(void)
+void set_pwm_if_test_case(void)
 {
-	uint8 index;
+	uint8_t index;
 
 	typedef struct
 	{
 		/* inputs */
-		pwm_signal_t signal;		/* for freq and duty cycle */
+		pwm_if_signal_t signal;		/* for freq and duty cycle */
 		pwm_channel_t channel;
-		bool_t return_for_set_pwm;
+		bool_t return_for_set_frequency;
+		bool_t return_for_set_duty_cycle;
 
 		/* output */
-		bool_t flag_calling_set_pwm;
+		bool_t flag_calling_set_frequency;
+		bool_t flag_calling_set_duty_cycle;
 		bool_t return_from_function_call;
 	} test_data_t;
 
@@ -475,18 +467,18 @@ void set_pwm_if_test(void)
 	 */
 	test_data_t test_data[] =
 	{
-		{{50, 	10}, PWM_CH0, TRUE,	TRUE,	TRUE },
-		{{49, 	10}, PWM_CH0, TRUE, TRUE,	FALSE},
-		{{51, 	10}, PWM_CH0, TRUE, TRUE,	TRUE },
-		{{499,	10}, PWM_CH0, TRUE, TRUE,	TRUE },
-		{{500,	10}, PWM_CH0, TRUE, TRUE,	TRUE },
-		{{501,	10}, PWM_CH0, TRUE, TRUE,	FALSE},
-		{{50,	9},  PWM_CH0, TRUE, TRUE,	FALSE},
-		{{50,	11}, PWM_CH0, TRUE, TRUE,	TRUE },
-		{{50,	89}, PWM_CH0, TRUE, TRUE,	TRUE },
-		{{50,	90}, PWM_CH0, TRUE, TRUE,	TRUE },
-		{{50,	91}, PWM_CH0, TRUE, TRUE,	FALSE},
-		{{50,	90}, PWM_CH0, FALSE,TRUE,	FALSE},
+		{{50, 	10}, PWM_CH0, TRUE,	TRUE,	TRUE,	TRUE,	TRUE },
+		{{49, 	10}, PWM_CH0, TRUE, TRUE, 	FALSE,	FALSE,	FALSE},
+		{{51, 	10}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{499,	10}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{500,	10}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{501,	10}, PWM_CH0, TRUE, TRUE, 	FALSE,	FALSE,	FALSE},
+		{{50,	9 }, PWM_CH0, TRUE, TRUE, 	FALSE,	FALSE,	FALSE},
+		{{50,	11}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{50,	89}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{50,	90}, PWM_CH0, TRUE, TRUE,   TRUE,	TRUE,	TRUE },
+		{{50,	91}, PWM_CH0, TRUE, TRUE, 	FALSE,	FALSE,	FALSE},
+		{{50,	90}, PWM_CH0, FALSE,FALSE,  TRUE,	FALSE,	FALSE},
 	};
 
 
@@ -501,17 +493,23 @@ void set_pwm_if_test(void)
 		/* setup the inputs into the function under test */
 		bool_t return_from_function_call;
 
-		return_value_for_set_pwm = test_data[index].return_for_set_pwm;
-		flag_calling_set_pwm = FALSE;
+		return_for_set_frequency = test_data[index].return_for_set_frequency;
+		return_for_set_duty_cycle = test_data[index].return_for_set_duty_cycle;
+		flag_calling_set_frequency = FALSE;
+		flag_calling_set_duty_cycle = FALSE;
 
 		/* execute the function */
-		expected_init_OK = set_pwm_if(
+		return_from_function_call = set_pwm_if(
 				test_data[index].channel,
 				test_data[index].signal);
 
 		/* check that the result is the same as the expected */
 		assert(return_from_function_call == test_data[index].return_from_function_call);
-		assert(flag_calling_set_pwm == test_data[index].flag_calling_set_pwm);
+		assert(flag_calling_set_frequency == test_data[index].flag_calling_set_frequency);
+		assert(flag_calling_set_duty_cycle == test_data[index].flag_calling_set_duty_cycle);
 	}
 }
 ```
+
+This test code satisfies the three requirements of `req_PWM1`, `req_PWM2` and `req_PWM3`. The rest of the requirements would be tested within the software integration testing as it involves several of the functions.
+
