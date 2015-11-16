@@ -32,7 +32,7 @@ Looking closer at the requirements, the majority of them can be implemented in t
 
 Once the requirements are agreed by all the parties, including the customer, requirements engineer, the software validation engineer and the hardware engineering team, the design and the test cases can be develop for each requirement. In many cases, getting agreement on the requirements is a long process. The agreement may not even be reached when the design is needed. However, do let that hold you back. After you have designed a few software modules, you will get a sense of basic structure of a software stack.
 
-Above its functional requirements, there will also be architecture requirements for the software module to meet.
+Above its functional requirements, there will also be architecture requirements for the software module to meet but for this purpose of this book, the architecture requirements will not be considered.
 
 ## Design of the PWM interface
 
@@ -415,9 +415,9 @@ The data type of pwm_if_signal_t contains two members of frequency and duty cycl
 
 Other than the `bool_t` being returned which indicates if the signal was set correctly, the other outputs are the calling of `set_pwm()` to the driver layer. In the mocked `set_pwm()`, a flag will need to be set so that its calling is captured, and this also forms part of the output in the truth table.
 
-| input1             | input2      |input3   | input4                     | output                     | output
-| `frequency`        | duty_cycle  |channel  | return flag for set_pwm()  | flag for calling set_pwn() | return from function call
-| ------------------ |:-----------:|:-------:|:--------------------------:|:--------------------------:|:------------:|
+| input1             | input2      |input3   | input4                     | output                     | output       |
+| frequency          | duty_cycle  |channel  | return flag for set_pwm()  | flag for calling set_pwn() | return from function call |
+| ------------------ |-------------|---------|----------------------------|----------------------------|--------------|
 | 50                 | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
 | 49                 | 10          | PWM_CH0 | dont care                  |dont care                   | FALSE        |
 | 51                 | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
@@ -513,3 +513,42 @@ void set_pwm_if_test_case(void)
 
 This test code satisfies the three requirements of `req_PWM1`, `req_PWM2` and `req_PWM3`. The rest of the requirements would be tested within the software integration testing as it involves several of the functions.
 
+When I run the coverage tool to see the code coverage, it shows that line executed coverage has increased to 65%. 
+
+	localhost:HAL tehnyitchin$ gcov -f -b pwm_if.gcno 
+	Function 'init_pwm_if'
+	Lines executed:100.00% of 11
+	Branches executed:100.00% of 4
+	Taken at least once:100.00% of 4
+	No calls
+	
+	Function 'deinit_pwm_if'
+	Lines executed:0.00% of 6
+	No branches
+	No calls
+	
+	Function 'set_pwm_if'
+	Lines executed:100.00% of 15
+	Branches executed:100.00% of 12
+	Taken at least once:91.67% of 12
+	No calls
+	
+	Function 'get_pwm_if'
+	Lines executed:0.00% of 8
+	Branches executed:0.00% of 2
+	Taken at least once:0.00% of 2
+	No calls
+	
+	File 'pwm_if.c'
+	Lines executed:65.00% of 40
+	Branches executed:88.89% of 18
+	Taken at least once:83.33% of 18
+	No calls
+	pwm_if.c:creating 'pwm_if.c.gcov'
+
+
+The test case for `get_pwm_if()` would also go through a similar process. All the different inputs and its corresponding expected outputs have been analysed and determined, it becomes quite easy to develop the test code.
+
+I have left the test code as an exercise for the reader so I won't show what my implementation might have been.
+
+ 

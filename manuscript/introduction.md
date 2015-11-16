@@ -39,6 +39,8 @@ I have presented the information in this book in about the same order which a so
 
 You should make your own annotation so that the concepts are understandable to you. If you have a physical copy of this book, I encourage you to pen down your own notes on the margins of the book. If reading this on a kindle, use the notes feature to annotate it. 
 
+This book is a guide. It is not a text book that shows everything about unit tests and how it can be applied. It is shows you the basic idea of how a unit test is constructed and how it can be use to deliver robust code.
+
 ## Thank you
 
 Finally, before we get into the book proper, I want to thank you for taking the time to learn about unit testing. I hope that you have got what are seeking from this book and can spread the word about the importance of early automated testing. 
