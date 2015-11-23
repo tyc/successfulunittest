@@ -4,7 +4,7 @@
 
 I graduated from the Royal Melbourne Institute of Technology in 1992. Since then I have been working with embedded systems. Most engineering shops practicing this specialised artform are small to medium sized. Their engineering teams are usually small but resource hungry.
 
-My first engineering team was a small team of three engineers. I was a graduate engineer, tasked with writing code for an embedded system. It was for an 8051 derivative from Philips controlling a vacuum replenishing system. At that time, the Australian government just passed a law banning ozone destroying gases, especially from the car’s air conditioner system. So this product would suck out the banned gas in the AC and pump the approved gas into it.
+My first engineering team was a small team of three engineers. I was a graduate engineer, tasked with writing code for an embedded system. It was for an 8051 derivative from Philips controlling a vacuum replenishing system. At that time, the Australian government just passed a law banning ozone destroying gases, especially from the car’s air conditioner system. So this product would suck out the banned gas in the air conditioner and pump the approved gas into it.
 
 The small engineering team did a back of an envelope design. We coded it up, did some rudimentary testing and shipped it. The project struggled with all sorts of problems. The software was buggy at all different levels. It caused the delivery to be late and over budget. The project finally shipped, but with plenty of bugs and we lost a customers as result. It was a depressing lesson for me.
 
@@ -12,7 +12,7 @@ From that disastrous first project, and the many projects that followed it, I le
 
 I usually think of about this as getting all the small bricks that are part of a three storey house correct. The right type of bricks must be specified, and there must be test results that the bricks meet the specifications. Once satisfied with the results, I can safely proceed to build the house. If the bricks are not properly specified or tested, the house has the potential to collapse as the bricks are overstressed and will disintegrate.
 
-In writing this book, I have hope to close the gap of providing practical ideas to successful unit tests for your code.  
+In writing this guide, I have hope to close the gap of providing practical ideas to successful unit tests for your code.  
 
 ## Who should read this book
 
@@ -37,10 +37,21 @@ You have worked in a team environment where your software modules are expected t
 
 I have presented the information in this book in about the same order which a software is typically tested. However, it does not have to be read in this manner. You could easily have opened the book at any particular chapter to get the necessary info. Each chapter is self contained.
 
-You should make your own annotation so that the concepts are understandable to you. If you have a physical copy of this book, I encourage you to pen down your own notes on the margins of the book. If reading this on a kindle, use the notes feature to annotate it. 
+You should make your own annotation so that the concepts are understandable to you. If you have a physical copy of this book, I encourage you to pen down your own notes on the margins of the book. If reading this on a ebook reader, use the notes feature to annotate it. 
 
 This book is a guide. It is not a text book that shows everything about unit tests and how it can be applied. It is shows you the basic idea of how a unit test is constructed and how it can be use to deliver robust code.
 
 ## Thank you
 
 Finally, before we get into the book proper, I want to thank you for taking the time to learn about unit testing. I hope that you have got what are seeking from this book and can spread the word about the importance of early automated testing. 
+
+## Going Forward
+
+There is a companion website, it is located at 
+
+	www.successfulunittest.com
+	
+If you want to provide feedback and suggestion. You can leave a comment on the website, or alternatively, please send an email to 
+
+	tehn.yit.chin@successfulunittest.com
+	

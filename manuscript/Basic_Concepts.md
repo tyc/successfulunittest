@@ -10,7 +10,9 @@ I am only covering the basic concepts and I encourage you to research the topics
 
 A software module is a group of functions that are group together based on their complementary functions. There are usually a .c file, and its .h file.
 
-To help unit test, the software module should be setup so that it can be easily tested. A practical way is to abstract all the configurable parameters to a header file. The abstraction will separate the logical functionality from its configuration. When the unit test is complete on the software module and proven to be correct, it is released. Any change in its behaviour can affect via its configuration. The unit test is skipped as the software module is proven from a logical perspective.
+To help unit test, the software module should be setup so that it can be easily tested. A practical way is to abstract all the configurable parameters to a header file. The abstraction will separate the logical functionality from its configuration. When the unit test is complete on the software module and proven to be correct, it is released. Any change in its behaviour can affect via its configuration. The unit test is skipped as the software module is proven from a logical perspective. 
+
+Obviously, for the complete behaviour of the software module to be known, all combinations which can be subjected to the software module must be used.
 
 ##Mocks
 
@@ -24,14 +26,15 @@ Mocks also abstracts all the test conditions away from the dependencies of hardw
 
 ##Correct behaviour of a software module
 
-Before you start writing a single test script, you must have a clear understanding of what is correct behaviour. The correct behaviour could be dependent upon what the project aim.
+Before you start writing a single test script, you must have a clear understanding of what is correct behaviour. 
 
-The usual manner is for the requirements of your software module defined. The definitions are used to defined the correct behaviour. If it satisfies those requirements, then the software module is classified as having correct behaviour.
+The requirements of your software module defines correct behaviour. If it satisfies those requirements, then the software module is classified as having correct behaviour. If the requirements missing, correct behaviour is undefined and is usually based upon the engineering judgement of the project.
 
 There are several ways of checking behaviour is correct. Some of the main characteristics to look for are:
 
-* lower level functions must be called in a specified order
-* the number of call to lower level function is counted. If it is called too many times, it is a sign of incorrect implementation.
+* Lower level functions must be called in a specified order
+* The number of call to lower level function is counted. If it is called too many times, it is a sign of incorrect implementation.
+* The internal behaviour is verified by checking that the variables are updated correctly.
 * The returned values matches the expected. Returned values can be obtained via the returned type, or the passed in pointer.
 * The correct lower level code is called with the correct parameters.
 
@@ -39,11 +42,13 @@ Correct behaviour about timing and interaction other modules are not considered 
 
 Correct behaviour is also checked by other tools that focuses on other aspects of the software module. For example, a tool is used to check that the code matches the coding guidelines of the project, or that the software module is structured according to the architecture requirements. This type of discussion is outside the scope of this book.
 
-The majority of the tools uses the assert() macro to help with notifying software tester that a non-conformity was detected. The assert() macro takes the test result and the expected result, a non-match flags the error. A more complex assert() macro will also display a message to give some context to the software tester or the software debugger why an error was detected.
+The majority of the unit test framework uses the `assert()` macro to help with notifying software tester that a non-conformity was detected. The `assert()` macro takes the test result and the expected result, a non-match flags the error. A more complex `assert()` macro will also display a message to give some context to the software tester or the software debugger why an error was detected. 
 
 ##Requirements
 
-The requirements of the software module is a set of statements that specifies what the software should do. This set of statements are cohesively created, it can specify all the important aspects of the software module. These could include all the items mentioned earlier such as the specific calling order or the value that the types are returned.
+The requirements of the software module is a set of statements that specifies what the software should do. This set of statements are cohesively created. This means that the requirements are clear and able to be tested. It also means that each of the requirements works together and does not conflict against each other. 
+
+The requirements can specify all the important aspects of the software module. These could include all the items mentioned earlier such as the specific calling order or the value that the types are returned.
 
 There several level of requirements used when describing the software. For the software modules, the requirements are specified at a low level perspective.
 
@@ -69,7 +74,7 @@ One important character of requirements is that each requirements is assigned a 
 
 ##Version Control
 
-I am not going to go too deep with version control. Yet, it is such an important subject that I want to read a chapter just to remind you of it.
+I am not going to go too deep with version control. Yet, it is such an important subject that I want to write a chapter just to remind you of it.
 
 The unit test cases you create needs to be version controlled. It is an integral part of creating your software. It is as important as the C code you write, so it needs to be managed using a version control management system. There are plenty of system available, just choose one that you feel comfortable, just make sure you use one. 
 
@@ -83,17 +88,17 @@ In this chapter, I will go through each type of coverage. I will show how achiev
 
 Instruction coverage is a measure of how much of the code was tested. This type of coverage is also known as statement coverage, code coverage or C0 coverage.
 
-The measure for instruction coverage is whether the C code is executed during the test. If the code was executed at least once, it is marked as executed and counts towards the measure. If the measure is less than 100%, not all the code in your function was executed during the testing. Not achieving 100% coverage does not always mean that you have uncovered some dead code. It could also show that the stimulus that you have used in the testing is not suitable.
+The measure for instruction coverage is whether the C code is executed during the test. If the code was executed at least once, it is marked as executed and counts towards the measurement. If the measurement is less than 100%, not all the code in your function was executed during the testing. Not achieving 100% coverage does not always mean that you have uncovered some dead code. It could also show that the stimulus that you have used in the testing is not suitable.
 
-The coverage does not matter how many times the C code have been executed. It also does not care if the code has correct behaving.
+The coverage does not matter how many times the C code have been executed. It also does not care if the code has correct behaviour.
 
-The coverage is calculated by the number lines of code executed divided by the number of available lines of code for execution. To get a better understanding when assess this metric, it is a good idea to also take into the account of the number of lines of code as well as the percentage.
+The coverage is calculated by the number lines of code executed divided by the number of available lines of code for execution. To get a better understanding when assessing this metric, it is a good idea to also take into the account of the number of lines of code as well as the percentage. 
 
 Sometimes, your coverage tool measures this metric at assembly language level. It takes a measure of all the addresses which are occupied with code. When executing, it logs all the addresses which have been executed. This is a more accurate measure but it is dependent on the architecture and compiler and platform used. Yet, to keep you code platform independent, your test results should also be platform independent as well.
 
 ### Branch Coverage
 
-Branch coverage is a measure of whether branches of code was executed or not. It is relates to decision making and the branches it takes when those decision are made. The `if` clauses are main focus here.
+Branch coverage is a measure of whether branches of code was executed or not. It is relates to decision making and the branches it takes when those decision are made. The `if` clauses are main focus here. The `switch..case` is also in focus here as well. 
 
 This type of coverage is also known as C1 coverage.
 
@@ -103,7 +108,7 @@ During the execution of the test case, if a branch executed, it is marked as exe
 
 The branch coverage does not care about if the correct decision was made to execute a particular branch. It cares if the branch was executed or not. The correctness of the branch execution is determined in a different manner.
 
-One of the purpose of branch coverage is used as a metric to check if your test inputs are correctly selected. If the test inputs only yields a branch coverage of 50% on an if branch, that means that your selection of test inputs is not wide enough.
+One of the purposes for branch coverage is to check if your test inputs are correctly selected. If the test inputs only yields a branch coverage of 50% on an `if` branch, that means that your selection of test inputs is not wide enough. The correctness of the branching is not being evaluate here.  That is checked in a different manner. 
 
 ### Functional coverage
 
