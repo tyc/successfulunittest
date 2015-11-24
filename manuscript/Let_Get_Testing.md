@@ -4,11 +4,11 @@ I will go through the concepts used in unit test by going through an example.
 
 Let's say that I need to write a software stack for controlling the PWM signal out of the microcontroller. The PWM signal is used to drive a DC motor. 
 
-In general, the duty cycle of the PWM signal. The larger the duty cycle, the faster the DC motor will run. In a typical application, the software would be used to regulate the speed of the DC motor by continuously adjust the duty cycle. The adjustments are based on the measured speed of the DC motor.
-
 To ease the development of the software, it is a good idea to break the software into two layers. The layer that is closer to the hardware is usually known as the device driver, and the layer above it is known as the manager or the handler. Together, they are known as a software stack. In a more complex software stack, there could be more software modules or layers.
 
-For this example, I am not going to be use a unit test framework such as Cmocka or Ceedling. I want to show the basics of constructing a unit test with all the inner workings, so I will build the unit test using standard development methods. 
+In general, the duty cycle of the PWM signal is what controls the speed of the DC motor. The larger the duty cycle, the faster the DC motor will run. In a typical application, the software would be used to regulate the speed of the DC motor by continuously adjust the duty cycle. The adjustments are based on the measured speed of the DC motor. To write a total software stack to control a DC motor via PWM is a complex task, so I will only implement the setting of the PWM's frequency and duty cycle.
+
+For this example, I am not going to be use a unit test framework such as Cmocka or Ceedling. I want to show the basics of constructing a unit test with all the inner workings, so I will build the unit test using standard development methods. I will use `clang` as the compiler and will be calling it via the command line.
 
 ## Requirements
 
@@ -24,9 +24,9 @@ Let's start by laying out the requirements so that we know what is to be built.
     req_PWM8: The PWM driver shall not consume more than 1KByte of code space.
     req_PWM9: The PWM driver shall not consume more than 5% of its allocate time slot.
     
-This set of requirements are only developed to show the benefit of unit tests. Some of the may not actually work in a real world software stack.
+This set of requirements are only developed to show the benefit of unit tests. Some of the requirements may not actually work in a real world software stack.
 
-Looking closer at the requirements, the majority of them can be implemented in the manager. The frees up the implementation of the device driver from any requirements. However, it is should keep the basic software engineering practice such as keeping it as lean as possible, and also as simple as possible.
+Looking closer at the requirements, the majority of them can be implemented in the manager. This frees up the implementation of the device driver from any requirements. However, it is should be designed using the good software engineering practice such as keeping it as lean as possible, and also as simple as possible.
 
 `req_PWM8` and `req_PWM9` are not functional requirements, so it can not be tested during the unit tests. Furthermore, it is highly dependent on platform it is deployed upon, and the compiler used.
 
@@ -36,7 +36,7 @@ Above its functional requirements, there will also be architecture requirements 
 
 ## Design of the PWM interface
 
-For the purpose of this book, the following functions to the PWM software stack are created. Here are their function prototypes.
+For the purpose of this guide, the following functions to the PWM software stack are created. Here are their function prototypes.
 
 	bool_t init_pwm_if(pwm_if_channel_t channel);
 	bool_t deinit_pwm_if(pwm_if_channel_t channel);
@@ -44,11 +44,11 @@ For the purpose of this book, the following functions to the PWM software stack 
 	bool_t get_pwm_if(pwm_if_channel_t channel, pwm_if_signal_t *signal);
 
 
-I have adopted the format of `<action>_<module>_<layer>()` for the function names. So looking at the function name, it is immediately obvious what its purpose. More context is provided by which layer the module is residing.
+I have adopted the format of `<action>_<module>_<layer>()` for the function names. So looking at the function name, it is immediately obvious what its purpose. More context is provided by which layer the module is residing. It is good software engineering practice to have a naming standard for your project. Having a standard makes spotting mistakes easier and allows the code to better understood.  
 
-So for the function `get_pwm_if()`, you know that it get some data or information about a particular PWM channel and it is in the interface layer, this layer is also known as the hardware abstraction layer. Application code would interact with the hardware via this functions. If PWM signal at 50Hz at 75% duty cycle is needed, it would call `set_pwm_if()`. If the software is exiting sleep mode, it would call `init_pwm_if()`.
+So for the function `get_pwm_if()`, you know that it will get some data or information about a particular PWM channel and it is in the interface layer, this layer is also known as the Hardware Abstraction Layer. Application code would interact with the hardware via this functions. For example, if PWM signal at 50Hz at 75% duty cycle is needed, it would call `set_pwm_if()`. If the software is exiting sleep mode, it would call `init_pwm_if()`.
 
-The design focus of the functions is to have a good set of functions to affect the driver's characteristics. Here a good set also means not to provide too much functionality. The higher level of functionality, the more complex it is, and the higher risk level. The dependency between the functions should also be kept to a minimum. This design rule would also reduce the complexity of the unit tests.
+The design focus of the functions is to have a good set of functions to affect the driver's characteristics. A good set also means not to provide too much functionality. The higher level of functionality, the more complex it is, and the higher risk level. The dependency between the functions should also be kept to a minimum. This design rule would also reduce the complexity of the unit tests.
 
 ## Test Case Design for `init_pwm_if()`
 
@@ -58,7 +58,7 @@ Taking the function `init_pwm_if()`, it returns a `bool_t` of TRUE if it was ini
 
 | input1             | output     |
 | `pwm_if_channel_t` | `bool_t`   |
-| ------------------ |:----------:|
+|:------------------:|:----------:|
 | `PWM_CH0 - 1`      | `FALSE`    |
 | `PWM_CH0`          | `TRUE`     |
 | `PWM_CH0 + 1`      | `TRUE`     |
@@ -72,15 +72,15 @@ The function description of the `init_pwm_if()` indicates the lower level MCAL i
 
 So far, we have only consider inputs coming into the software module via the caller. There is also inputs coming into the software module on lower level functions. So the initial truth table only consider the inputs and outputs from the function signature's perspective. The influences on returns from called functions need to be considered as well.
 
-As mentioned before, it calls the microcontroller's peripheral. In this case, it calls `init_pwm()` to initialise the peripheral. `init_pwm()` returns a boolean. It has the function prototype of
+As mentioned before, it initialises the microcontroller's peripheral. In this case, it calls `init_pwm()` to initialise the peripheral, `init_pwm()` returns a boolean. It has the function prototype of
 
     bool_t init_pwm(pwm_channel_t channel);
     
-The truth table now becomes
+In the truth table, a new row is added to handle this scenario. The truth table now becomes
 
 | input1             | input2                 | output       |
 | `channel`          | return from init_pwm() | `bool_t`     |
-| ------------------ |:----------------------:|:------------:|
+|:------------------:|:----------------------:|:------------:|
 | `PWM_CH0 - 1`      | `don't care`           | `FALSE`      |
 | `PWM_CH0`          | `TRUE`                 | `TRUE`       |
 | `PWM_CH0 + 1`      | `TRUE`                 | `TRUE`       |
@@ -91,12 +91,12 @@ The truth table now becomes
 
 When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if()` is always a FALSE. It does not matter what value is passed into `init_pwm_if()`, this type of inputs is indicated as a `don't care`.
 
-The requirement for `init_pwm_if()` is that it is must only be initialised once before it it is de-initialised. Further initialisation is forbidden. In a real world example, if the PWM is initialised when it is operating, it could cause serious damage if it was controlling machinery. So it is critical that there is a catch in the code for this scenario. Internal of `init_pwm_if()` is a flag that indicates if initialisation had occurred. If it is TRUE when initialisation is called, `init_pwm_if()` will return a FALSE.
+The requirement for `init_pwm_if()` is it must only be initialised once before it it is de-initialised. Further initialisation is forbidden. In a real world example, if the PWM is initialised when it is operating, it could cause serious damage if it was controlling machinery. So it is critical that there is a filter in the code for this scenario. Internal of `init_pwm_if()` there is a flag that indicates if initialisation had occurred. If it is TRUE when initialisation is called, `init_pwm_if()` will return a FALSE.
 
-The truth table must be extended to become
+A new row is added to the truth table to handle that reinit flag is set when `init_pwm()` is called. The truth table must be extended to become
 
 | input1             | input2                 | input3             | output       |
-| `channel`          | return from init_pwm() | flag for reinit    | `bool_t`     |
+| `channel`          | return from `init_pwm()` | flag for reinit    | `bool_t`     |
 | ------------------ |:----------------------:|:------------------:|:------------:|
 | `PWM_CH0 - 1`      | `don't care`           | `FALSE`            | `FALSE`      |
 | `PWM_CH0`          | `TRUE`                 | `FALSE`            | `TRUE`       |
@@ -134,7 +134,7 @@ These two functions are only compiled when `__UNITTEST__` are defined.
 
 ### A macro for STATIC
 
-The variable `init_pwm_reinit_flag` is declared with the `static` keyword to keep it local. 
+The variable `init_pwm_reinit_flag` is declared with the `static` keyword to keep it local to the software module. 
 
 	static bool_t init_pwm_reinit_flag = FALSE;
 	
@@ -162,11 +162,15 @@ To use it in `pwm_if_test.c`, it is added to the source via
 
 	extern bool_t init_pwm_reinit_flag;
 
+### use logic to test behaviour
+
+For this example, the whole point is to check that the PWM peripheral is not initialised when it is already initialised. So if getting access to the internal variable is not possible, this will have to be tested based on the behaviour. 
+
+The first time `init_pwm_if()` is called with valid parameters, the return should be TRUE, and the called flag for `init_pwm()` is TRUE as well. Upon the second time it is called, the return should be a FALSE and the called flag for `init_pwm()` is also FALSE as it was not called. By using this combination, this requirement can be tested.
 
 ## Test Script for `init_pwm_if()`
 
 The test script is the implementation for the test case. For this example, I have implemented test case as shown in the following code. I have chosen to use the macro method of accessing the internal variable. It was an arbitrary decision.
-
 
 ```
 bool_t init_pwm_return_value = FALSE;
@@ -213,17 +217,24 @@ static void init_pwm_if_test_case(void)
 		{PWM_CH0+1, 	FALSE, TRUE, FALSE},
 	};
 
+	/* set up the loop to iterate over all the each combination
+	 * of the test data in the truth table.
+	 */
 	for ( 	index = 0;
 			index < (sizeof(test_data)/sizeof(test_data[0]));
 			index++
 		)
 	{
-		bool_t output;
+		/* setup the inputs into the function under test */
+		bool_t expected_init_OK;
 		init_pwm_return_value = test_data[index].init_pwm_return_value;
 		init_pwm_reinit_flag = test_data[index].init_pwm_reinit_flag;
-		output = init_pwm_if(test_data[index].channel);
-
-		assert(output == test_data[index].expected_init_OK);
+		
+		/* execute the function */
+		expected_init_OK = init_pwm_if(test_data[index].channel);
+		
+		/* check that the result is the same as the expected */ 
+		assert(expected_init_OK == test_data[index].expected_init_OK);
 	}
 }
 ```
@@ -247,7 +258,7 @@ typedef struct
 
 The variable `init_pwm_return_value` is used to configure the return value of the mock function. In this case, the mock function `init_pwm()` will return the value `init_pwm_return_value`. So make sure that the type of `init_pwm_return_value` has the same type as the return type of `init_pwm()`.
 
-The variable `init_pwm_reinit_value` is used to configure the mock function if it has been initialised or not. If it is set to TRUE, the mock function will behave as if it has been initalised.
+The variable `init_pwm_reinit_value` is used to configure the mock function if it has been initialised or not. If it is set to TRUE, the mock function will behave as if it has been initialised.
 
 The construction of the test code should be next. It is constructed as a `for` loop where the test data is iterated over by the test code. It iterates for the entire dataset.
 
@@ -277,7 +288,7 @@ The code within the `for` loop does the actual testing. At the start of the loop
 
 ## Building the code
 
-To execute the test, it is necessary to build the binary. Assuming that you are using clang, you can compile the binary using the following command.
+To execute the test, it is necessary to build the executable. Assuming that you are using `clang`, you can compile the binary using the following command.
 
 	clang -I../../include -I../MCAL pwm_if_test.c pwm_if.c -o unittest
   
@@ -285,9 +296,11 @@ The include paths as specified by the `-I` option specifies where the headers ar
 
 If the unit test passes, no assertion will be generated. An assertion triggered off is a failed test case.
 
+For a complex project, the building of the test executable would be captured into a `makefile`. This makes dealing with dependencies a much easier tasks.
+
 ## Test coverage
 
-For this test case, it is important to check the code coverage is adequate. This is a question that needs to be constantly asked, and the initial target is always 100% coverage for code and branch. If neither of these two metrics are not at 100% coverage when you release the software module, there are gaps in the code that are not tested.
+For this test case, it is important to check the code coverage is adequate. This is a question that needs to be constantly asked, and the initial target is always 100% coverage for code and branch. If neither of these two metrics does not have 100% coverage when you release the software module, there are gaps in the code that are not tested.
 
 The analysis for the test coverage is highly dependent on the implementation of the code. 
 
@@ -317,7 +330,7 @@ The implementation for `init_pwm_if()` is as follows
 	
 Performing manual test coverage measurements is impossible to get right once the software module implementation gets complicated. It is better if the unit test frame work measures code coverage.
 
-You are in luck if your unit test frame work builds its test binaries using GNU tools. By specifying your build with the `--coverage`, your software module will be linked with code coverage data, and it will be automatically measured when the software module is executed. This is using the `gcov` features of the GNU toolchain. By the way, even though clang is not part of the GNU toolchain, it is compatible with `gcov`.
+You are in luck if your unit test frame work builds its test binaries using GNU tools, or tools that are compatible with GNU. By specifying your build with the `--coverage`, your software module will be linked with code coverage data, and it will be automatically measured when the software module is executed. This is using the `gcov` features of the GNU toolchain. By the way, even though `clang` is not part of the GNU toolchain, it is compatible with `gcov`.
 
 With the command line build, it would become 
 
@@ -400,11 +413,11 @@ As the summary indicated, other than `init_pwm()`, the rest of the functions in 
     req_PWM2: The PWM driver shall only allow a duty cycle from 10% to 90%.
     req_PWM3: When PWM driver receives request out of the allowable frequencies and duty cycles, it shall reject the request and the output signal does not change.
     
-and the prototype for set_pwm_if() is 
+and the prototype for `set_pwm_if()` is 
 
 	bool_t set_pwm_if(pwm_if_channel_t channel, pwm_if_signal_t signal);
 	
-The data type of pwm_if_signal_t contains two members of frequency and duty cycle. These two data affects the signal, so it is logical for them to be together. What this really means is that this is actually two inputs rather than the one input.
+The data type of `pwm_if_signal_t` contains two members, `frequency` and `duty_cycle`. These two struct members affects the signal, so it is logical for them to be together. What this really means is that this is actually two inputs rather than the one input.
 
 	typedef struct
 	{
@@ -418,20 +431,20 @@ Other than the `bool_t` being returned which indicates if the signal was set cor
 | input1             | input2      |input3   | input4                     | output                     | output       |
 | frequency          | duty_cycle  |channel  | return flag for set_pwm()  | flag for calling set_pwn() | return from function call |
 | ------------------ |-------------|---------|----------------------------|----------------------------|--------------|
-| 50                 | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
-| 49                 | 10          | PWM_CH0 | dont care                  |dont care                   | FALSE        |
-| 51                 | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
-| 499                | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
-| 500                | 10          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
-| 501                | 10          | PWM_CH0 | dont care                  |dont care                   | FALSE        |
-| 50                 | 9           | PWM_CH0 | dont care                  |dont care                   | FALSE        |
-| 50                 | 11          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
-| 50                 | 89          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
-| 50                 | 90          | PWM_CH0 | TRUE                       |TRUE                        | TRUE         |
-| 50                 | 91          | PWM_CH0 | dont care                  |dont care                   | FALSE        |
-| 50                 | 90          | PWM_CH0 | FALSE                      |TRUE                        | FALSE        |
+| 50                 | 10          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
+| 49                 | 10          | PWM_CH0 | don't care                 | don't care                 | FALSE        |
+| 51                 | 10          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
+| 499                | 10          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
+| 500                | 10          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
+| 501                | 10          | PWM_CH0 | don't care                 | don't care                 | FALSE        |
+| 50                 | 9           | PWM_CH0 | don't care                 | don't care                 | FALSE        |
+| 50                 | 11          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
+| 50                 | 89          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
+| 50                 | 90          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
+| 50                 | 91          | PWM_CH0 | don't care                 | don't care                 | FALSE        |
+| 50                 | 90          | PWM_CH0 | FALSE                      | TRUE                       | FALSE        |
 
-The truth table is constructed based upon the requirements of req_PWM1, req_PWM2 and req_PWM3. The values for frequeny and duty cycle are chosen for 1 on either side of the limits. The limits are classifed to be valid as per the requirements.
+The truth table is constructed based upon the requirements of `req_PWM1`, `req_PWM2` and `req_PWM3`. The values for frequency and duty cycle are chosen for 1 on either side of the limits. The limits are classified to be valid as per the requirements.
 
 With these test cases, the test code is shown. The structure is the same as `init_pwm_if_test_case()`. It follows the following pattern.
 
