@@ -4,7 +4,7 @@ Low level code works closely with the hardware. They also known as device driver
 
 To test the code, it can be written to be tested with an debugger attached to the hardware. This would tests the code on the actual device and would get the true behaviour. There several reasons why this scenario may not work as well.
 
-The debugger hardware may be expensive and not every developer can have access to one. The testing procedure is also likely to be manually executed. The electronic circuitry may not even be designed for you to start interfacing when you starts to write the code, so the low level code you are creating now must be tested on a mocked platform.
+The debugger hardware may be expensive and not every developer can have access to one. The testing procedure is also likely to be manually executed. Manual testing can be difficult to maintain consistency between testing sessions. The electronic circuitry may not even be designed for you to start interfacing when you starts to write the code, so the low level code you are creating now must be tested on a mocked platform.
 
 ## Mocking the hardware
 
@@ -24,8 +24,6 @@ For example, on a Atmel ATMega128 micrcontroller, to set the pin PB0 as an outpu
 Register `DDRB` and `PORTB` resides at address `0x1A` and `0x19` respectively.
 
 In your C code, there would a header file that defines all the register's addresses. To make it testable, it could be defined as
-
-
 	
 	#define PORTB_ADDRESS			0x1A
 	#define DDRB_ADDRESS			0x19
@@ -51,7 +49,7 @@ In your software module, you can use it in the following manner
 	DDRB = DDRB | 0x01;			/* writing 1 for direction of pin PB0 */
 	PORTB = PORTB | 0x01;		/* writing 1 to PB0 */ 
 	
-Noticed that I also do a read before setting the value.
+Just be aware that in the my code, I am doing a read, followed by a logical ORing of the lowest bit and finally the result is written back to register.
 	
 When doing unit test, the `__UNITTEST__` macro would be defined and PORTB and DDRB would be accessing an array element. Otherwise, it would addressing the actual registers on the microcontroller. Noticed that I created an array to contain all the registers in the microcontroller. This would only work if the microcontroller is small and simple. Luckily, the ATMega128 addressing of the registers starts at a very low address and it has only a small amount of registers. The size of all the mocked variables can be fitted to an 8bit value.
 
@@ -79,7 +77,7 @@ When the lower level code is using the registers, it does not have to consider w
 
 	....
 	/* clearing the lower nibble */
-	PCR0 &= 0xf0;
+	PCR0 = PCR0 & 0xf0;
 	
 	/* checking if bit 3 if PCR1 is set */
 	if (PCR1 & (1<<PIN3) != 0x00)
@@ -90,12 +88,13 @@ When the lower level code is using the registers, it does not have to consider w
 	
 With some planning after careful examination the register structure of the microcontroller, performing unit tests on low level drivers can occur in a robust manner.  
 
+At the start of the project, it would save significant amount of time if the file that contains all the register is created. This can be used for unit test as well as for production code.
 	
 ## Dealing with interrupts
 
-In an embedded system, the microcontroller would sometimes have to deal with interrupt. Interrupt is used for events that must be serviced and can not be missed. It is also used to handle non-periodic events.
+In an embedded system, the microcontroller would sometimes have to deal with interrupts. Interrupts are used for events that must be serviced and can not be missed. It is also used to handle non-periodic events where a polling strategy is not suitable.
 
-When a interrupt occurs in a microcontroller, it would load its program counter with the address of the interrupt service routine. This is acheived by getting the address from a predefined address location in the memory space, this memory space is typically known as interrupt vector table. Once the program counter is loaded, the stack would be loaded with context and it start executing the interrupt service routine.
+When an interrupt occurs in a microcontroller, it would load its program counter with the address of the interrupt service routine. This is acheived by getting the address from a predefined address location in the memory space, this memory space is typically known as interrupt vector table. Once the program counter is loaded, the stack would be loaded with context and it start executing the interrupt service routine.
 
 From a unit test perspective, it is difficult to simulate the dynamic nature of the interrupt service routine. However, from the code perspective, the interrupt service routine is just like it is being called. The only difference is that no values are being passed into it.
 
@@ -103,7 +102,7 @@ Let's take an example where the analog to digital convert interrupt is to be uni
 
 The simple requirements are
 
-	req_ADC1: When the interrupt is triggered, the interrupt service routine shall copy the converted value into the FIFO of the ADC Manager.
+	req_ADC1: When the end of conversion interrupt is triggered, the interrupt service routine shall copy the converted value into the FIFO of the ADC Manager.
 	req_ADC2: At the end of the interrupt service routine, the interrupt flag is cleared.
   
 From the requirements, the inputs are
@@ -123,7 +122,7 @@ From the requirements, the outputs are
 | true   | 0x55    | false   | 0x55    |
 
 
-The value used for the converted data (in2) is really a don't care, but I put in a value in there to specify that the value of copied value (out2) into the FIFO buffer needs to be the same. It just need to be different from the value in out2.
+The actual value used for the converted data (in2) is really a don't care, but I put in a value in there to specify that the value of copied value (out2) into the FIFO buffer needs to be the same. It just need to be different from the value in out2.
 
 ```
 void adc_ISR_test_case(void)
@@ -141,8 +140,8 @@ void adc_ISR_test_case(void)
 	
 	test_data_t test_data[] =
 	{
-		{FALSE, 	0x55, FALSE, 0xFF},
-		{TRUE,   	0x55, FALSE, 0x55}
+		{FALSE, 0x55, FALSE, 0xFF},
+		{TRUE,  0x55, FALSE, 0x55}
 	};
 	
 	for ( 	index = 0;
@@ -192,7 +191,7 @@ There will other interrupt strategies that are not easily unit tested. An exampl
 
 ## Accessing external memory
 
-External memory are memory devices that are outside of the microcontroller. They can either be used for storing of code or data, and are connected via a number of ways. Traditionally, they are memory mapped and access the content is just de-referencing a pointer to it, or maybe just let the linker handler the memory allocation.
+External memory are memory devices that are outside of the microcontroller. They can either be used for storing of code or data, and are connected via a number of ways. Traditionally, they are memory mapped and access the content is just de-referencing a pointer to it, or maybe just let the linker handler the memory allocation. So this is just simply reading from a memory location, as well as writing to a memory location.
 
 If the memory devices are not accessed via a memory mapped bus and access to its content need software intervention, then the memory devices needs to be mocked. Some examples of access is via a SPI bus for relatively fast memory access, or via I2C for slower memory access.
 
