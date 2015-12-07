@@ -56,15 +56,15 @@ To develop a test case, a good understanding of the environment which the softwa
 
 Taking the function `init_pwm_if()`, it returns a `bool_t` of TRUE if it was initialised successfully. At the first attempt at test case design, the truth table for its operation is 
 
-| input1             | output     |
-| `pwm_if_channel_t` | `bool_t`   |
-|:------------------:|:----------:|
-| `PWM_CH0 - 1`      | `FALSE`    |
-| `PWM_CH0`          | `TRUE`     |
-| `PWM_CH0 + 1`      | `TRUE`     |
-| `PWM_CH_MAX - 1`   | `TRUE`     |
-| `PWM_CH_MAX`       | `FALSE`    |
-| `PWM_CH_MAX + 1`   | `FALSE`    |
+	| input1             | output     |
+	| `pwm_if_channel_t` | `bool_t`   |
+	|:------------------:|:----------:|
+	| `PWM_CH0 - 1`      | `FALSE`    |
+	| `PWM_CH0`          | `TRUE`     |
+	| `PWM_CH0 + 1`      | `TRUE`     |
+	| `PWM_CH_MAX - 1`   | `TRUE`     |
+	| `PWM_CH_MAX`       | `FALSE`    |
+	| `PWM_CH_MAX + 1`   | `FALSE`    |
 
 The left hand column are the input values, and the right hand side are the return values. This truth table shows that the whole range of possible values are used. It starts from the lowest value of `PWM_CH0`, up to the maximum value of `PWM_CH_MAX`. With the C program language being used, it is based with index starting at 0. This is why a `FALSE` is returned when the input is PWM_CH_MAX. A good test is to test one item on either side of the maximum and minimum value. This would catch the "one-off" bugs.
 
@@ -78,16 +78,16 @@ As mentioned before, it initialises the microcontroller's peripheral. In this ca
     
 In the truth table, a new row is added to handle this scenario. The truth table now becomes
 
-| input1             | input2                 | output       |
-| `channel`          | return from init_pwm() | `bool_t`     |
-|:------------------:|:----------------------:|:------------:|
-| `PWM_CH0 - 1`      | `don't care`           | `FALSE`      |
-| `PWM_CH0`          | `TRUE`                 | `TRUE`       |
-| `PWM_CH0 + 1`      | `TRUE`                 | `TRUE`       |
-| `PWM_CH_MAX - 1`   | `TRUE`                 | `TRUE`       |
-| `PWM_CH_MAX`       | `don't care`           | `FALSE`      |
-| `PWM_CH_MAX + 1`   | `don't care`           | `FALSE`      |
-| `don't care`       | `FALSE`                | `FALSE`      |
+	| input1             | input2                   | output       |
+	| `channel`          | return from `init_pwm()` | `bool_t`     |
+	|--------------------|--------------------------|--------------|
+	| `PWM_CH0 - 1`      | `don't care`             | `FALSE`      |
+	| `PWM_CH0`          | `TRUE`                   | `TRUE`       |
+	| `PWM_CH0 + 1`      | `TRUE`                   | `TRUE`       |
+	| `PWM_CH_MAX - 1`   | `TRUE`                   | `TRUE`       |
+	| `PWM_CH_MAX`       | `don't care`             | `FALSE`      |
+	| `PWM_CH_MAX + 1`   | `don't care`             | `FALSE`      |
+	| `don't care`       | `FALSE`                  | `FALSE`      |
 
 When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if()` is always a FALSE. It does not matter what value is passed into `init_pwm_if()`, this type of inputs is indicated as a `don't care`.
 
@@ -95,17 +95,22 @@ The requirement for `init_pwm_if()` is it must only be initialised once before i
 
 A new row is added to the truth table to handle that reinit flag is set when `init_pwm()` is called. The truth table must be extended to become
 
-| input1             | input2                 | input3             | output       |
-| `channel`          | return from `init_pwm()` | flag for reinit    | `bool_t`     |
-| ------------------ |:----------------------:|:------------------:|:------------:|
-| `PWM_CH0 - 1`      | `don't care`           | `FALSE`            | `FALSE`      |
-| `PWM_CH0`          | `TRUE`                 | `FALSE`            | `TRUE`       |
-| `PWM_CH0 + 1`      | `TRUE`                 | `FALSE`            | `TRUE`       |
-| `PWM_CH_MAX - 1`   | `TRUE`                 | `FALSE`            | `TRUE`       |
-| `PWM_CH_MAX`       | `don't care`           | `FALSE`            | `FALSE`      |
-| `PWM_CH_MAX + 1`   | `don't care`           | `FALSE`            | `FALSE`      |
-| `don't care`       | `FALSE`                | `FALSE`            | `FALSE`      |
-| `don't care`       | `dont't care`          | `TRUE`             | `FALSE`      |
+
+	| input1             | input2                   | input3             | output       |
+	| `channel`          | return from `init_pwm()` | flag for reinit    | `bool_t`     |
+	| ------------------ |:------------------------:|:------------------:|:------------:|
+	| `PWM_CH0 - 1`      | `don't care`             | `FALSE`            | `FALSE`      |
+	| `PWM_CH0`          | `TRUE`                   | `FALSE`            | `TRUE`       |
+	| `PWM_CH0 + 1`      | `TRUE`                   | `FALSE`            | `TRUE`       |
+	| `PWM_CH_MAX - 1`   | `TRUE`                   | `FALSE`            | `TRUE`       |
+	| `PWM_CH_MAX`       | `don't care`             | `FALSE`            | `FALSE`      |
+	| `PWM_CH_MAX + 1`   | `don't care`             | `FALSE`            | `FALSE`      |
+	| `don't care`       | `FALSE`                  | `FALSE`            | `FALSE`      |
+	| `don't care`       | `dont't care`            | `TRUE`             | `FALSE`      |
+
+
+ 
+
 
 Instead of a reinit flag, there could also be a counter in the mock function to count the number of times it has been called. This is check that the PWM peripheral is initialised the correct number of times.
 
@@ -128,7 +133,6 @@ Two unit test helper functions can be created to set the value of `init_pwm_rein
 		return (init_pwm_reinit_flag);
 	} 
 	#endif /* __UNITTEST__ */
-	
 
 These two functions are only compiled when `__UNITTEST__` are defined.
 
@@ -428,21 +432,22 @@ The data type of `pwm_if_signal_t` contains two members, `frequency` and `duty_c
 
 Other than the `bool_t` being returned which indicates if the signal was set correctly, the other outputs are the calling of `set_pwm()` to the driver layer. In the mocked `set_pwm()`, a flag will need to be set so that its calling is captured, and this also forms part of the output in the truth table.
 
-| input1             | input2      |input3   | input4                     | output                     | output       |
-| frequency          | duty_cycle  |channel  | return flag for set_pwm()  | flag for calling set_pwn() | return from function call |
-| ------------------ |-------------|---------|----------------------------|----------------------------|--------------|
-| 50                 | 10          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
-| 49                 | 10          | PWM_CH0 | don't care                 | don't care                 | FALSE        |
-| 51                 | 10          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
-| 499                | 10          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
-| 500                | 10          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
-| 501                | 10          | PWM_CH0 | don't care                 | don't care                 | FALSE        |
-| 50                 | 9           | PWM_CH0 | don't care                 | don't care                 | FALSE        |
-| 50                 | 11          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
-| 50                 | 89          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
-| 50                 | 90          | PWM_CH0 | TRUE                       | TRUE                       | TRUE         |
-| 50                 | 91          | PWM_CH0 | don't care                 | don't care                 | FALSE        |
-| 50                 | 90          | PWM_CH0 | FALSE                      | TRUE                       | FALSE        |
+	| input1      | input2      |input3   | input4          | output flag | output return |
+	| `frequency` | `duty_cycle`|`channel`| return flag     | for calling | from function |         
+	|             |             |         | for `set_pwm()` | `set_pwn()` | call `bool_t` |
+	| ------------|-------------|---------|-----------------|-------------|---------------|
+	| 50          | 10          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
+	| 49          | 10          | PWM_CH0 | don't care      | don't care  | FALSE         |
+	| 51          | 10          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
+	| 499         | 10          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
+	| 500         | 10          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
+	| 501         | 10          | PWM_CH0 | don't care      | don't care  | FALSE         |
+	| 50          | 9           | PWM_CH0 | don't care      | don't care  | FALSE         |
+	| 50          | 11          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
+	| 50          | 89          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
+	| 50          | 90          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
+	| 50          | 91          | PWM_CH0 | don't care      | don't care  | FALSE         |
+	| 50          | 90          | PWM_CH0 | FALSE           | TRUE        | FALSE         |
 
 The truth table is constructed based upon the requirements of `req_PWM1`, `req_PWM2` and `req_PWM3`. The values for frequency and duty cycle are chosen for 1 on either side of the limits. The limits are classified to be valid as per the requirements.
 
