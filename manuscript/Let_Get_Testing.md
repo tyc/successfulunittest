@@ -432,22 +432,22 @@ The data type of `pwm_if_signal_t` contains two members, `frequency` and `duty_c
 
 Other than the `bool_t` being returned which indicates if the signal was set correctly, the other outputs are the calling of `set_pwm()` to the driver layer. In the mocked `set_pwm()`, a flag will need to be set so that its calling is captured, and this also forms part of the output in the truth table.
 
-	| input1      | input2      |input3   | input4          | output flag | output return |
-	| `frequency` | `duty_cycle`|`channel`| return flag     | for calling | from function |         
-	|             |             |         | for `set_pwm()` | `set_pwn()` | call `bool_t` |
-	| ------------|-------------|---------|-----------------|-------------|---------------|
-	| 50          | 10          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
-	| 49          | 10          | PWM_CH0 | don't care      | don't care  | FALSE         |
-	| 51          | 10          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
-	| 499         | 10          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
-	| 500         | 10          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
-	| 501         | 10          | PWM_CH0 | don't care      | don't care  | FALSE         |
-	| 50          | 9           | PWM_CH0 | don't care      | don't care  | FALSE         |
-	| 50          | 11          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
-	| 50          | 89          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
-	| 50          | 90          | PWM_CH0 | TRUE            | TRUE        | TRUE          |
-	| 50          | 91          | PWM_CH0 | don't care      | don't care  | FALSE         |
-	| 50          | 90          | PWM_CH0 | FALSE           | TRUE        | FALSE         |
+	| input1    | input2    |input3   |input4      |output flag | output return |
+	| frequency | duty_cycle|channel  |return flag |for calling | from function |         
+	|           |           |         |set_pwm()   |set_pwn()   | bool_t        |
+	| ----------|-----------|---------|------------|------------|---------------|
+	| 50        | 10        | PWM_CH0 | TRUE       | TRUE       | TRUE          |
+	| 49        | 10        | PWM_CH0 | don't care | don't care | FALSE         |
+	| 51        | 10        | PWM_CH0 | TRUE       | TRUE       | TRUE          |
+	| 499       | 10        | PWM_CH0 | TRUE       | TRUE       | TRUE          |
+	| 500       | 10        | PWM_CH0 | TRUE       | TRUE       | TRUE          |
+	| 501       | 10        | PWM_CH0 | don't care | don't care | FALSE         |
+	| 50        | 9         | PWM_CH0 | don't care | don't care | FALSE         |
+	| 50        | 11        | PWM_CH0 | TRUE       | TRUE       | TRUE          |
+	| 50        | 89        | PWM_CH0 | TRUE       | TRUE       | TRUE          |
+	| 50        | 90        | PWM_CH0 | TRUE       | TRUE       | TRUE          |
+	| 50        | 91        | PWM_CH0 | don't care | don't care | FALSE         |
+	| 50        | 90        | PWM_CH0 | FALSE      | TRUE       | FALSE         |
 
 The truth table is constructed based upon the requirements of `req_PWM1`, `req_PWM2` and `req_PWM3`. The values for frequency and duty cycle are chosen for 1 on either side of the limits. The limits are classified to be valid as per the requirements.
 
