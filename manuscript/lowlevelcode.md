@@ -115,12 +115,12 @@ From the requirements, the outputs are
 * the interrupt flag status (out1)
 * the FIFO buffer containing the converted data (out2)
 
-
+```
 	| in1   | in2  | out1  | out2  |
 	|-------|------|-------|-------|
 	| false | 0x55 | false | 0xff  |
 	| true  | 0x55 | false | 0x55  |
-
+```
 
 The actual value used for the converted data (in2) is really a don't care, but I put in a value in there to specify that the value of copied value (out2) into the FIFO buffer needs to be the same. It just need to be different from the value in out2.
 
