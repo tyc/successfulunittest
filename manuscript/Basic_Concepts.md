@@ -8,21 +8,21 @@ I am only covering the basic concepts and I encourage you to research the topics
 
 ##Software module
 
-A software module is a group of functions that are group together based on their complementary functions. There are usually a .c file, and its .h file.
+A software module is a group of functions that are grouped together based on their complementary functions. There are usually a .c file, and a corresponding .h file. Sometimes, there are several header files that would contain information for configuration and  private functions. 
 
-To help unit test, the software module should be setup so that it can be easily tested. A practical way is to abstract all the configurable parameters to a header file. The abstraction will separate the logical functionality from its configuration. When the unit test is complete on the software module and proven to be correct, it is released. Any change in its behaviour can affect via its configuration. The unit test is skipped as the software module is proven from a logical perspective. 
+To help unit test, the software module should be setup so that it can be easily tested. A practical way is to abstract all the configurable parameters to a header file. The abstraction will separate the logical functionality from its configuration. When the unit test is completed on the software module and proven to be correct, it is released. Any change in its behaviour that can be affected via its configuration. The unit test is skipped as the software module is proven from a logical perspective. 
 
 Obviously, for the complete behaviour of the software module to be known, all combinations which can be subjected to the software module must be used.
 
 ##Mocks
 
-Depending upon which layer the software module under test is residing, there are usually lower layer functions which are called. Lower layer functions are usually replaced by mocks functions that pretends to be the real function. It is useful when writing software modules targeting specific platform with specific software drivers.
+Depending upon which layer the software module under test is residing, there are usually lower layer functions which are called. Lower layer functions are usually replaced by mock functions that pretends to be the real functions. It is useful when writing software modules targeting specific platform with specific software drivers.
 
-This is much better explained via an example. Say the task is to write a software manager. It is for handling the incoming stream of serial data over the CAN communication bus. The manager interfaces to the CAN transceiver driver and CAN controller interface. The focus is to write the manager is a generic manner. Once written, it can be used on other platform. The CAN controller interface and the CAN transceiver driver is tied to the platform and the hardware used. When the test script for the manager is being written, two mocks are created to pretend to be the CAN transceiver driver and the CAN controller interface.
+This is much better explained via an example. Say the task is to write a software manager. It is for handling the incoming stream of serial data over the CAN communication bus. The manager interfaces to the CAN transceiver driver and CAN controller interface. The focus is to write the manager is a generic manner. Once written, it can be used on other platforms. The CAN controller interface and the CAN transceiver driver are tied to the platform and the hardware used. When the test script for the manager is being written, two mocks are created to pretend to be the CAN transceiver driver and the CAN controller interface.
 
-One of the major benefits of using mock is to ability to inject erroneous behaviour. Extending the above example of the software manager, the CAN controller interface could pretend to be faulty and not able  initialise correctly. This test case would check that the software manager is able to handle error conditions.
+One of the major benefits of using mock is the ability to inject erroneous behaviour. Extending the above example of the software manager, the CAN controller interface could pretend to be faulty and not able  to be initialised correctly. This test case would check that the software manager is able to handle error conditions.
 
-Mocks also abstracts all the test conditions away from the dependencies of hardware availability. This will allow the software modules to developed on an relatively independent time line from the hardware.
+Mocks also abstract all the test conditions away from the dependencies of hardware availability. This will allow the software modules to developed on an relatively independent time line from the hardware.
 
 ##Correct behaviour of a software module
 
@@ -30,7 +30,7 @@ Before you start writing a single test script, you must have a clear understandi
 
 The requirements of your software module defines correct behaviour. If it satisfies those requirements, then the software module is classified as having correct behaviour. If the requirements missing, correct behaviour is undefined and is usually based upon the engineering judgement of the project.
 
-There are several ways of checking behaviour is correct. Some of the main characteristics to look for are:
+There are several ways of checking if the behaviour is correct. Some of the main characteristics to look for are:
 
 * Lower level functions must be called in a specified order
 * The number of call to lower level function is counted. If it is called too many times, it is a sign of incorrect implementation.
@@ -38,7 +38,7 @@ There are several ways of checking behaviour is correct. Some of the main charac
 * The returned values matches the expected. Returned values can be obtained via the returned type, or the passed in pointer.
 * The correct lower level code is called with the correct parameters.
 
-Correct behaviour about timing and interaction other modules are not considered in unit tests. Dynamic behaviour and interactive behaviour are tested for integration tests. This include memory consumption tests.
+Correct behaviour about timing and interaction with other modules are not considered in unit tests. Dynamic behaviour and interactive behaviour are tested with integration tests. This include memory consumption tests.
 
 Correct behaviour is also checked by other tools that focuses on other aspects of the software module. For example, a tool is used to check that the code matches the coding guidelines of the project, or that the software module is structured according to the architecture requirements. This type of discussion is outside the scope of this book.
 

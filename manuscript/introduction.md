@@ -4,9 +4,9 @@
 
 I graduated from the Royal Melbourne Institute of Technology in 1992. Since then I have been working with embedded systems. Most engineering shops practicing this specialised artform are small to medium sized. Their engineering teams are usually small but resource hungry.
 
-My first engineering team was a small team of three engineers. I was a graduate engineer, tasked with writing code for an embedded system. It was for an 8051 derivative from Philips controlling a vacuum replenishing system. At that time, the Australian government just passed a law banning ozone destroying gases, especially from the car’s air conditioner system. So this product would suck out the banned gas in the air conditioner and pump the approved gas into it.
+My first engineering team was a small team of three engineers. I was a graduate engineer, tasked with writing code for an embedded system. It was for an 8051 derivative from Philips controlling a vacuum replenishing system. At that time, the Australian government just passed a law banning ozone destroying gases, especially from the car’s air conditioner system. So this product would suck out the banned gas from the air conditioner and pump the approved gas into it.
 
-The small engineering team did a back of an envelope design. We coded it up, did some rudimentary testing and shipped it. The project struggled with all sorts of problems. The software was buggy at all different levels. It caused the delivery to be late and over budget. The project finally shipped, but with plenty of bugs and we lost a customers as result. It was a depressing lesson for me.
+The small engineering team did a back of an envelope design. We coded it up, did some rudimentary testing and shipped it. The project struggled with all sorts of problems. The software was buggy at all different levels. It caused the delivery to be late and the project costs to be over budget. The project finally shipped, but with plenty of bugs and we lost the customer as result. It was a depressing lesson for me.
 
 From that disastrous first project, and the many projects that followed it, I learned to ship a project on time, on budget and on spec. Careful planning must be ensured. A robust testing strategy must be part of that plan. One of the corner stones of the testing strategy is the unit test. With a good unit test plan, the whole project still has the potential to fall down, but that potential is much less.
 
@@ -19,7 +19,7 @@ In writing this guide, I have hope to close the gap of providing practical ideas
 * **The graduate software development engineer**
     - The graduate engineer will see how a unit test will increase the robustness of code that was created. Firstly it will take the graduate engineer from designing to structuring the code for testability. Secondly, it will show the graduate engineer how to collect the metrics to prove that the code is correctly implemented. This book will contain the necessary details needed for the graduate engineer to ensure that the software module is complete when it is delivered for integration.
 * **The seasoned software engineer**
-    - This book will cover topics which a seasoned software engineer should be familiar with. This book is ordered in a typical process with which the software module is tested and formalises the typical development process for a software module. It will discuss advance concepts such as traceability and test planning. 
+    - This book will cover topics which a seasoned software engineer should be familiar with, so it should be just a review of a typical process. This book is ordered in a typical process with which the software module is tested and formalises the typical development process for a software module. It will discuss advance concepts such as traceability and test planning. 
 * **The software team leader**
     - This book will show the software team leader what indicators to measure to ensure that the software modules are written to the necessary quality level. The signs will include the basic measures and items for review. The software team leader will take these metrics to provide a picture of the health of the overall software delivery. 
 * **The quality assurance engineer**
@@ -35,7 +35,7 @@ You have worked in a team environment where your software modules are expected t
 
 ## How to use this book
 
-I have presented the information in this book in about the same order which a software is typically tested. However, it does not have to be read in this manner. You could easily have opened the book at any particular chapter to get the necessary info. Each chapter is self contained.
+I have presented the information in this book in about the same order which a software is typically tested. However, it does not have to be read in this manner. You could easily have opened the book at any particular chapter to get the necessary info. Each chapter is self contained, let me know if this are some gaps missing for you.
 
 You should make your own annotation so that the concepts are understandable to you. If you have a physical copy of this book, I encourage you to pen down your own notes on the margins of the book. If reading this on a ebook reader, use the notes feature to annotate it. 
 

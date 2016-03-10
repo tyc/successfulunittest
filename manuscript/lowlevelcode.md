@@ -1,10 +1,12 @@
 # Testing Low Level Code
 
-Low level code works closely with the hardware. They also known as device drivers. Because the code works very close to the hardware, it is very specific to the hardware it is targeting. From a reuse perspective, the best scenario is if a standard microcontroller or standard circuit is used for all projects, now and in the future. Although it is the best scenario, it is not realistic. Typically, the microcontroller is chosen for the project and most projects have their unique requirements that would cause a different microcontroller to be chosen for each project. For example, for a project where power consumption is a key requirement, the Texas Instrument MSP430 is a good candidate as it has a low power consumption during sleep mode, however for a project that needs more processing power, an microcontroller with a ARM core in it might more suitable as it provides high processing power.
+Low level code works closely with the hardware. They also known as device drivers. Because the code works very close to the hardware, it is very specific to the hardware it is targeting. From a reuse perspective, the best scenario is if a standard microcontroller or standard circuit is used for all projects, now and in the future. Although it is the best scenario, it is not realistic. Typically, the microcontroller is chosen for the project and most projects have their unique requirements that would cause a different microcontroller to be chosen. For example, for a project where power consumption is a key requirement, the Texas Instrument MSP430 is a good candidate as it has a low power consumption during sleep mode, however for a project that needs more processing power, an microcontroller with a ARM core or more in it might more suitable as it provides high processing power.
 
 To test the code, it can be written to be tested with an debugger attached to the hardware. This would tests the code on the actual device and would get the true behaviour. There several reasons why this scenario may not work as well.
 
-The debugger hardware may be expensive and not every developer can have access to one. The testing procedure is also likely to be manually executed. Manual testing can be difficult to maintain consistency between testing sessions. The electronic circuitry may not even be designed for you to start interfacing when you starts to write the code, so the low level code you are creating now must be tested on a mocked platform.
+The debugger hardware may be expensive and not every developer can have access to one. The testing procedure is also likely to be manually executed. Manual testing can be difficult to maintain a consistent environment between testing sessions. 
+
+The electronic circuitry may not even be designed for you to start interacting with when you starts to design the code, so the low level code you are creating now must be tested on a mocked platform.
 
 ## Mocking the hardware
 
@@ -14,7 +16,7 @@ The behaviour of the microcontroller and the electronic circuitry are simulated 
 
 ### Accessing to the registers
 
-Most microcontrollers functions are accessible via memory mapped registers. These registers contain bit fields that you can use to affect the behaviour, and can also be use to read status of inputs or functions.
+Most microcontroller's functions are accessible via memory mapped registers. These registers contain bit fields that you can use to affect the behaviour, and can also be use to read status of inputs or functions.
 
 For example, on a Atmel ATMega128 micrcontroller, to set the pin PB0 as an output and write a logic one to it. The  sequence is
 
@@ -49,7 +51,7 @@ In your software module, you can use it in the following manner
 	DDRB = DDRB | 0x01;			/* writing 1 for direction of pin PB0 */
 	PORTB = PORTB | 0x01;		/* writing 1 to PB0 */ 
 	
-Just be aware that in the my code, I am doing a read, followed by a logical ORing of the lowest bit and finally the result is written back to register.
+Just be aware that in my code, I am doing a read, followed by a logical ORing of the lowest bit and finally the result is written back to register. This is true for both DDRB and PORTB registers.
 	
 When doing unit test, the `__UNITTEST__` macro would be defined and PORTB and DDRB would be accessing an array element. Otherwise, it would addressing the actual registers on the microcontroller. Noticed that I created an array to contain all the registers in the microcontroller. This would only work if the microcontroller is small and simple. Luckily, the ATMega128 addressing of the registers starts at a very low address and it has only a small amount of registers. The size of all the mocked variables can be fitted to an 8bit value.
 
@@ -94,9 +96,9 @@ At the start of the project, it would save significant amount of time if the fil
 
 In an embedded system, the microcontroller would sometimes have to deal with interrupts. Interrupts are used for events that must be serviced and can not be missed. It is also used to handle non-periodic events where a polling strategy is not suitable.
 
-When an interrupt occurs in a microcontroller, it would load its program counter with the address of the interrupt service routine. This is acheived by getting the address from a predefined address location in the memory space, this memory space is typically known as interrupt vector table. Once the program counter is loaded, the stack would be loaded with context and it start executing the interrupt service routine.
+When an interrupt occurs in a microcontroller, it would load its program counter with the address of the interrupt service routine. This is achieved by getting the address from a predefined address location in the memory space, this memory space is typically known as interrupt vector table. Once the program counter is loaded, the stack would be loaded with context and it start executing the interrupt service routine.
 
-From a unit test perspective, it is difficult to simulate the dynamic nature of the interrupt service routine. However, from the code perspective, the interrupt service routine is just like it is being called. The only difference is that no values are being passed into it.
+From an unit test perspective, it is difficult to simulate the dynamic nature of the interrupt service routine. However, from the code perspective, the interrupt service routine is just like it is being called as a function. The only difference is that no values are being passed into it.
 
 Let's take an example where the analog to digital convert interrupt is to be unit tested. It is a simple routine that would take converted value and store it into a buffer.
 
@@ -182,12 +184,12 @@ void adc_ISR_test_case(void)
 
 The two asserts are used to check that the interrupt service routine satisfies the `req_ADC1` and `req_ADC2`. During the test, the interrupt service routine will appear to be execute as though a real interrupt has occurs, however there are some differences that must be kept in mind.
 
-* When an interrupt service routine is really called, the context of the microcontroller is saved onto the stack. When the interrupt service routine is completed, the context is restored from the stack. Context typically means the all the values of the microcontroller's registers, but it is dependent on the implementation from the compiler. The unit test's version will not do this action as it is just being treated as a function. This needs to be kept in mind if you are testing functions that perform stack unrolling, or nested interrupts.
-* When the interrupt service routine is completed, it is returned normal execution with a special return instruction, something like a RETI. In most microcontroller, executing the RETI instruction will trigger some other action to clear interrupts flags. Obviously, this is not the case in the unit test situation.
+* When an interrupt service routine is really called, the context of the microcontroller is saved onto the stack. When the interrupt service routine is completed, the context is restored from the stack. Context typically means that all the values of the microcontroller's registers, but it is dependent on the implementation from the compiler. The unit test's version will not save the context as it is just being treated as a function. This needs to be kept in mind if you are testing functions that perform stack unrolling, or nested interrupts.
+* When the interrupt service routine is completed, it returns to normal execution with a special return instruction, something like a RETI. In most microcontroller, executing the RETI instruction will trigger some other action to clear interrupts flags. Obviously, this is not the case in the unit test situation.
 
-These differences are not present in your unit test, so be aware of these if it might have some influence of your software behaviour.
+These differences are not present in your unit tests, so be aware of these if it might have some influence of your software behaviour.
 
-There will other interrupt strategies that are not easily unit tested. An example would be nested interrupts, especially the scenario of returning from servicing an interrupt to servicing the routine that was interrupted. Stack unrolling that is typically used in pre-emptive system is usually hard to unit test fully with this method.
+There will other interrupt strategies that are not easy to unit test. An example would be nested interrupts, especially the scenario of returning from servicing an interrupt to servicing the routine that was interrupted. Stack unrolling that is typically used in pre-emptive system is usually hard to unit test fully with this method.
 
 ## Accessing external memory
 

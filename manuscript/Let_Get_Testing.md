@@ -24,13 +24,13 @@ Let's start by laying out the requirements so that we know what is to be built.
     req_PWM8: The PWM driver shall not consume more than 1KByte of code space.
     req_PWM9: The PWM driver shall not consume more than 5% of its allocate time slot.
     
-This set of requirements are only developed to show the benefit of unit tests. Some of the requirements may not actually work in a real world software stack.
+This set of requirements is only developed to show the benefits of unit tests. Some of the requirements may not actually work in a real world software stack.
 
 Looking closer at the requirements, the majority of them can be implemented in the manager. This frees up the implementation of the device driver from any requirements. However, it is should be designed using the good software engineering practice such as keeping it as lean as possible, and also as simple as possible.
 
 `req_PWM8` and `req_PWM9` are not functional requirements, so it can not be tested during the unit tests. Furthermore, it is highly dependent on platform it is deployed upon, and the compiler used.
 
-Once the requirements are agreed by all the parties, including the customer, requirements engineer, the software validation engineer and the hardware engineering team, the design and the test cases can be develop for each requirement. In many cases, getting agreement on the requirements is a long process. The agreement may not even be reached when the design is needed. However, do let that hold you back. After you have designed a few software modules, you will get a sense of basic structure of a software stack.
+Once the requirements are agreed by all the parties, including the customer, requirements engineer, the software validation engineer and the hardware engineering team, the design and the test cases can be develop for each requirement. In many cases, getting agreement on the requirements is a long process. The agreement may not even be reached when the design is needed. However, don't let that hold you back. After you have designed a few software modules, you will get a sense of basic structure of a software stack.
 
 Above its functional requirements, there will also be architecture requirements for the software module to meet but for this purpose of this book, the architecture requirements will not be considered.
 
@@ -44,7 +44,7 @@ For the purpose of this guide, the following functions to the PWM software stack
 	bool_t get_pwm_if(pwm_if_channel_t channel, pwm_if_signal_t *signal);
 
 
-I have adopted the format of `<action>_<module>_<layer>()` for the function names. So looking at the function name, it is immediately obvious what its purpose. More context is provided by which layer the module is residing. It is good software engineering practice to have a naming standard for your project. Having a standard makes spotting mistakes easier and allows the code to better understood.  
+I have adopted the format of `<action>_<module>_<layer>()` for the function names. So looking at the function name, it is immediately obvious of its purpose. More context is provided by which layer the module is residing. It is good software engineering practice to have a naming standard for your project. Having a standard makes spotting mistakes easier and allows the code to better understood.  
 
 So for the function `get_pwm_if()`, you know that it will get some data or information about a particular PWM channel and it is in the interface layer, this layer is also known as the Hardware Abstraction Layer. Application code would interact with the hardware via this functions. For example, if PWM signal at 50Hz at 75% duty cycle is needed, it would call `set_pwm_if()`. If the software is exiting sleep mode, it would call `init_pwm_if()`.
 
@@ -92,7 +92,7 @@ In the truth table, a new row is added to handle this scenario. The truth table 
 
 When the return value from `init_pwm()` is a FALSE, the output from `init_pwm_if()` is always a FALSE. It does not matter what value is passed into `init_pwm_if()`, this type of inputs is indicated as a `don't care`.
 
-The requirement for `init_pwm_if()` is it must only be initialised once before it it is de-initialised. Further initialisation is forbidden. In a real world example, if the PWM is initialised when it is operating, it could cause serious damage if it was controlling machinery. So it is critical that there is a filter in the code for this scenario. Internal of `init_pwm_if()` there is a flag that indicates if initialisation had occurred. If it is TRUE when initialisation is called, `init_pwm_if()` will return a FALSE.
+The requirement for `init_pwm_if()` is it must only be initialised once before it is de-initialised. Further initialisation is forbidden. In a real world example, if the PWM is initialised when it is operating, it could cause serious damage if it was controlling machinery. So it is critical that there is a filter in the code for this scenario. Internal of `init_pwm_if()` there is a flag that indicates if initialisation had occurred. If it is TRUE when initialisation is called, `init_pwm_if()` will return a FALSE.
 
 A new row is added to the truth table to handle that reinit flag is set when `init_pwm()` is called. The truth table must be extended to become
 
@@ -113,7 +113,7 @@ Instead of a reinit flag, there could also be a counter in the mock function to 
 
 ## Getting access to internal variables
 
-In the function `init_pwm_if()`, the variable `init_pwm_reinit_flag` is used by PWM stack to block its re-initialisation. The proper implementation is for this variable to be local to the PWM stack, so for the purpose unit test, this makes `init_pwm_reinit_flag` inaccessible. There are options to get around this problem
+In the function `init_pwm_if()`, the variable `init_pwm_reinit_flag` is used by the PWM stack to block its re-initialisation. The proper implementation is for this variable to be local to the PWM stack. So for the purpose unit test, this makes `init_pwm_reinit_flag` inaccessible. There are options to get around this problem
 
 ### Helper set/get function
 
@@ -131,7 +131,7 @@ Two unit test helper functions can be created to set the value of `init_pwm_rein
 	} 
 	#endif /* __UNITTEST__ */
 
-These two functions are only compiled when `__UNITTEST__` are defined.
+These two functions are only compiled when `__UNITTEST__` are defined. 
 
 ### A macro for STATIC
 
@@ -155,6 +155,8 @@ To satisfy both requirement, `static` can be replaced with a macro. So in `std_t
 	
 	#endif /* __UNITTEST__ */ 
 
+I have used `std_types.h` as the header to contain the defintion for `STATIC`. In your project, you could use another header file. The key is that the header should be a header that is included in all of source code and `std_types.h` is one of those header files. 
+
 The definition is declared as in `pwm_if.c` 
 
 	STATIC bool_t init_pwm_reinit_flag = FALSE;
@@ -162,6 +164,8 @@ The definition is declared as in `pwm_if.c`
 To use it in `pwm_if_test.c`, it is added to the source via
 
 	extern bool_t init_pwm_reinit_flag;
+	
+
 
 ### use logic to test behaviour
 
@@ -242,7 +246,7 @@ static void init_pwm_if_test_case(void)
 
 So pattern for writing a unit test is pretty straight forward. The concept is to iterate a set of inputs and check that the response from it is the same as the expected. The test code above has this pattern.
 
-So breaking the test script to its parts, at the start of the test script, a struct is created to contain the inputs and the expected outputs. Give the members meaningful names rather than `input1`, `input2` and `input3`. The meaningful names will allow the test code to be read easily. In this example, there are three inputs and one output. Ensure that the member is the same type of the tested parameters. The struct is local to this particular test case. For each test case, create a struct suitable for your test.
+So breaking the test script to its parts, at the start of the test script, a `struct` is created to contain the inputs and the expected outputs. Give the members meaningful names rather than `input1`, `input2` and `input3`. The meaningful names will allow the test code to be read easily. In this example, there are three inputs and one output. Ensure that the member is the same type of the tested parameter. The struct is local to this particular test case. For each test case, create a struct suitable for your test.
 
 ```
 typedef struct
