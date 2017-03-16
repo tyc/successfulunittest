@@ -1,6 +1,6 @@
 # Lets start testing
 
-I will go through the concepts used in unit test by going through an example. 
+I will go through the concepts used in unit testing by going through an example. 
 
 Let's say that I need to write a software stack for controlling the PWM signal out of the microcontroller. The PWM signal is used to drive a DC motor. 
 
@@ -8,7 +8,7 @@ To ease the development of the software, it is a good idea to break the software
 
 In general, the duty cycle of the PWM signal is what controls the speed of the DC motor. The larger the duty cycle, the faster the DC motor will run. In a typical application, the software would be used to regulate the speed of the DC motor by continuously adjust the duty cycle. The adjustments are based on the measured speed of the DC motor. To write a total software stack to control a DC motor via PWM is a complex task, so I will only implement the setting of the PWM's frequency and duty cycle.
 
-For this example, I am not going to be use a unit test framework such as Cmocka or Ceedling. I want to show the basics of constructing a unit test with all the inner workings, so I will build the unit test using standard development methods. I will use `clang` as the compiler and will be calling it via the command line.
+For this example, I am not going to be use a unit testing framework such as Cmocka or Ceedling. I want to show the basics of constructing a unit test with all the inner workings, so I will build the unit test using standard development methods. I will use `clang` as the compiler and will be calling it via the command line.
 
 ## Requirements
 
@@ -24,11 +24,11 @@ Let's start by laying out the requirements so that we know what is to be built.
     req_PWM8: The PWM driver shall not consume more than 1KByte of code space.
     req_PWM9: The PWM driver shall not consume more than 5% of its allocate time slot.
     
-This set of requirements is only developed to show the benefits of unit tests. Some of the requirements may not actually work in a real world software stack.
+This set of requirements is only developed to show the benefits of unit testing. Some of the requirements may not actually work in a real world software stack.
 
 Looking closer at the requirements, the majority of them can be implemented in the manager. This frees up the implementation of the device driver from any requirements. However, it is should be designed using the good software engineering practice such as keeping it as lean as possible, and also as simple as possible.
 
-`req_PWM8` and `req_PWM9` are not functional requirements, so it can not be tested during the unit tests. Furthermore, it is highly dependent on platform it is deployed upon, and the compiler used.
+`req_PWM8` and `req_PWM9` are not functional requirements, so it can not be tested during the unit testing. Furthermore, it is highly dependent on platform it is deployed upon, and the compiler used.
 
 Once the requirements are agreed by all the parties, including the customer, requirements engineer, the software validation engineer and the hardware engineering team, the design and the test cases can be develop for each requirement. In many cases, getting agreement on the requirements is a long process. The agreement may not even be reached when the design is needed. However, don't let that hold you back. After you have designed a few software modules, you will get a sense of basic structure of a software stack.
 
@@ -68,7 +68,7 @@ Taking the function `init_pwm_if()`, it returns a `bool_t` of TRUE if it was ini
 
 The left hand column are the input values, and the right hand side are the return values. This truth table shows that the whole range of possible values are used. It starts from the lowest value of `PWM_CH0`, up to the maximum value of `PWM_CH_MAX`. With the C program language being used, it is based with index starting at 0. This is why a `FALSE` is returned when the input is PWM_CH_MAX. A good test is to test one item on either side of the maximum and minimum value. This would catch the "one-off" bugs.
 
-The function description of the `init_pwm_if()` indicates the lower level MCAL is also initialised. In the unit test, a mock function is used to simulate the initialisation of the PWM peripheral. In your mock function, a flag is set to indicate that it has been called.
+The function description of the `init_pwm_if()` indicates the lower level MCAL is also initialised. In the unit testing, a mock function is used to simulate the initialisation of the PWM peripheral. In your mock function, a flag is set to indicate that it has been called.
 
 So far, we have only consider inputs coming into the software module via the caller. There is also inputs coming into the software module on lower level functions. So the initial truth table only consider the inputs and outputs from the function signature's perspective. The influences on returns from called functions need to be considered as well.
 
@@ -113,7 +113,7 @@ Instead of a reinit flag, there could also be a counter in the mock function to 
 
 ## Getting access to internal variables
 
-In the function `init_pwm_if()`, the variable `init_pwm_reinit_flag` is used by the PWM stack to block its re-initialisation. The proper implementation is for this variable to be local to the PWM stack. So for the purpose unit test, this makes `init_pwm_reinit_flag` inaccessible. There are options to get around this problem
+In the function `init_pwm_if()`, the variable `init_pwm_reinit_flag` is used by the PWM stack to block its re-initialisation. The proper implementation is for this variable to be local to the PWM stack. So for the purpose of unit testing, this makes `init_pwm_reinit_flag` inaccessible. There are options to get around this problem
 
 ### Helper set/get function
 

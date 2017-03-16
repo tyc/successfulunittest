@@ -53,7 +53,7 @@ In your software module, you can use it in the following manner
 	
 Just be aware that in my code, I am doing a read, followed by a logical ORing of the lowest bit and finally the result is written back to register. This is true for both DDRB and PORTB registers.
 	
-When doing unit test, the `__UNITTEST__` macro would be defined and PORTB and DDRB would be accessing an array element. Otherwise, it would addressing the actual registers on the microcontroller. Noticed that I created an array to contain all the registers in the microcontroller. This would only work if the microcontroller is small and simple. Luckily, the ATMega128 addressing of the registers starts at a very low address and it has only a small amount of registers. The size of all the mocked variables can be fitted to an 8bit value.
+When doing unit testing, the `__UNITTEST__` macro would be defined and PORTB and DDRB would be accessing an array element. Otherwise, it would addressing the actual registers on the microcontroller. Noticed that I created an array to contain all the registers in the microcontroller. This would only work if the microcontroller is small and simple. Luckily, the ATMega128 addressing of the registers starts at a very low address and it has only a small amount of registers. The size of all the mocked variables can be fitted to an 8bit value.
 
 For a 32bit microcontroller such as a Freescale MPC5510 PowerPC, there are hundreds of registers and simulating all the registers' addresses as an array is not a suitable strategy. An array to contain all the registers would be very large, and the index into the array would be a 32bit value. For such a microcontroller, the following set up might be better.
 
@@ -90,7 +90,7 @@ When the lower level code is using the registers, it does not have to consider w
 	
 With some planning after careful examination the register structure of the microcontroller, performing unit tests on low level drivers can occur in a robust manner.  
 
-At the start of the project, it would save significant amount of time if the file that contains all the register is created. This can be used for unit test as well as for production code.
+At the start of the project, it would save significant amount of time if the file that contains all the register is created. This can be used for unit testing as well as for production code.
 	
 ## Dealing with interrupts
 
@@ -98,7 +98,7 @@ In an embedded system, the microcontroller would sometimes have to deal with int
 
 When an interrupt occurs in a microcontroller, it would load its program counter with the address of the interrupt service routine. This is achieved by getting the address from a predefined address location in the memory space, this memory space is typically known as interrupt vector table. Once the program counter is loaded, the stack would be loaded with context and it start executing the interrupt service routine.
 
-From an unit test perspective, it is difficult to simulate the dynamic nature of the interrupt service routine. However, from the code perspective, the interrupt service routine is just like it is being called as a function. The only difference is that no values are being passed into it.
+From an unit testing perspective, it is difficult to simulate the dynamic nature of the interrupt service routine. However, from the code perspective, the interrupt service routine is just like it is being called as a function. The only difference is that no values are being passed into it.
 
 Let's take an example where the analog to digital convert interrupt is to be unit tested. It is a simple routine that would take converted value and store it into a buffer.
 
@@ -199,7 +199,7 @@ If the memory devices are not accessed via a memory mapped bus and access to its
 
 One of the common memory functions in an embedded is the non-volatile memory manager. This software manager deals the accessing of data on an external memory and deals with situations such as wear leveling, error corrections and the list goes on. Think of it as saving data onto the harddisk on your PC. There are many algorithms to managing the memory, and it is beyond the scope of this book to go into its detail.
 
-For the unit test of the non volatile memory manager to simulate access to the device, a mocked memory device is needed to simulate the behaviour of the external memory device. The actual manager code will be sitting on top of the device driver of the bus connecting to the external memory device. The mocking of the external memory device is only needed to test the device driver.
+For the unit testing of the non volatile memory manager to simulate access to the device, a mocked memory device is needed to simulate the behaviour of the external memory device. The actual manager code will be sitting on top of the device driver of the bus connecting to the external memory device. The mocking of the external memory device is only needed to test the device driver.
 
 To easiest way is to mock the external memory access is to abstract the access to a set of macros. Even though accessing the external memory will be just like accessing a set of memory addresses, you should bear in mind that the content of the external memory also needs to be mocked. So if the device writes a value of 0x5A to address 0x10FA in the external memory device, that data in the device needs to be persistent. This is particular important if you want to test your non volatile memory manager for unwanted access and causing corruption.
 
@@ -214,7 +214,7 @@ A watchdog device is used to reset the microcontroller if your software is not b
 
 The detection comes in a form an exhausted timeout period in an external device. The timeout period is reset to the zero by the software, usually by driving a logic high to the external device.
 
-Because the true testing of the watchdog is dynamic in nature, it is only possible to test the logic of the watchdog manager with unit test. Dynamic aspects of the watchdog is within the scope of integration testing, at least if you want to get real time behaviour or to take into account of component tolerances.
+Because the true testing of the watchdog is dynamic in nature, it is only possible to test the logic of the watchdog manager with unit testing. Dynamic aspects of the watchdog is within the scope of integration testing, at least if you want to get real time behaviour or to take into account of component tolerances.
 
 A well designed watchdog function is triggered from a scheduler task that is executed periodically. If the time period is shorten or lengthen, the watchdog tickling will occur on the wrong time and cause the watchdog to generate the reset signal to the microcontroller. A shorten period would only affect a windowed watchdog. 
 
@@ -224,7 +224,7 @@ The test case for a watchdog would be to execute the watchdog task the correct n
 
 Doing unit test on software the contains assembly code is very difficult to get full coverage. The basic fact that the assembler is only specific to the microcontroller and is not executable on the host computer. So the assembler code cannot be unit tested off target, and will have to be tested on the target.
 
-For off target testing, the only way is to abstract the assembler code into a function. From the unit test perspective, your function that contains the assembler code would look just like a function that needs to be mocked. Be sure that it only contains assembler code.
+For off target testing, the only way is to abstract the assembler code into a function. From the unit testing perspective, your function that contains the assembler code would look just like a function that needs to be mocked. Be sure that it only contains assembler code.
 
 By using the `inline` attribute for the function declaration, the linker will put the assembler code into the function as though the assembler is not abstracted to a function. This will remove any artefacts from the abstraction of the assembler code such as the usage of stack to store return addresses. 
  
@@ -246,6 +246,6 @@ If the header file that contains its function prototype, it would be
 inline void asm_some_code(void);
 ```
 
-The unit test code will include the header file, and have a mocked function for it. The mocked function will be linked into the unit test binary for execution, and not use the assembler function.
+The unit testing code will include the header file, and have a mocked function for it. The mocked function will be linked into the unit test binary for execution, and not use the assembler function.
 
 

@@ -1,8 +1,8 @@
 # Basic Concepts
 
-Before we get started on the core unit tests, I will need to go through some of the concepts of unit test. If you are familiar with the basic concepts of unit test, you can skip this chapter onto the next chapter. In this chapter,  Some of the topics I will be discussing topics are test coverage, traceability and mocks.
+Before we get started on the core unit testing, I will need to go through some of the concepts of unit testing. If you are familiar with the basic concepts of unit testing, you can skip this chapter onto the next chapter. In this chapter,  Some of the topics I will be discussing topics are test coverage, traceability and mocks.
 
-This chapter does not just cover basic concepts in unit test. It also covers basic concept around software engineering. Unit test is one of the key components. The basic concepts around software engineering need to be described to give a complete picture.
+This chapter does not just cover basic concepts in unit testing. It also covers basic concept around software engineering. Unit testign is one of the key components. The basic concepts around software engineering need to be described to give a complete picture.
 
 I am only covering the basic concepts and I encourage you to research the topics further. There are many resources that discusses these topics in detail.
 
@@ -10,7 +10,7 @@ I am only covering the basic concepts and I encourage you to research the topics
 
 A software module is a group of functions that are grouped together based on their complementary functions. There are usually a .c file, and a corresponding .h file. Sometimes, there are several header files that would contain information for configuration and  private functions. 
 
-To help unit test, the software module should be setup so that it can be easily tested. A practical way is to abstract all the configurable parameters to a header file. The abstraction will separate the logical functionality from its configuration. When the unit test is completed on the software module and proven to be correct, it is released. Any change in its behaviour that can be affected via its configuration. The unit test is skipped as the software module is proven from a logical perspective. 
+To help unit testing, the software module should be setup so that it can be easily tested. A practical way is to abstract all the configurable parameters to a header file. The abstraction will separate the logical functionality from its configuration. When the unit testing is completed on the software module and proven to be correct, it is released. Any change in its behaviour that can be affected via its configuration. The unit testing is skipped as the software module is proven from a logical perspective. 
 
 Obviously, for the complete behaviour of the software module to be known, all combinations which can be subjected to the software module must be used.
 
@@ -42,7 +42,7 @@ Correct behaviour about timing and interaction with other modules are not consid
 
 Correct behaviour is also checked by other tools that focuses on other aspects of the software module. For example, a tool is used to check that the code matches the coding guidelines of the project, or that the software module is structured according to the architecture requirements. This type of discussion is outside the scope of this book.
 
-The majority of the unit test framework uses the `assert()` macro to help with notifying software tester that a non-conformity was detected. The `assert()` macro takes the test result and the expected result, a non-match flags the error. A more complex `assert()` macro will also display a message to give some context to the software tester or the software debugger why an error was detected. 
+The majority of the unit testing framework uses the `assert()` macro to help with notifying software tester that a non-conformity was detected. The `assert()` macro takes the test result and the expected result, a non-match flags the error. A more complex `assert()` macro will also display a message to give some context to the software tester or the software debugger why an error was detected. 
 
 ##Requirements
 
@@ -68,7 +68,7 @@ Notice that the requirements also specified non functional requirements, but the
 
 Once all the requirements are specified, it is reviewed with the test engineer. The test engineer should review it and ask himself if the requirements can be tested. If it can't be tested, usually the requirements are too vague and are too general. The requirements will need to be re-written and its behaviour better defined. In most cases, the test engineer create the unit test is also the development engineer. So this iteration loop is quite quick.
 
-The code you create implements functionality that behaves as per the requirements. The unit tests are code that checks if the implementation creates functionality that meets the requirements. This is why getting the requirements right is important. It has enormous impact on the implementation and the unit test if the requirements are not complete or not right.
+The code you create implements functionality that behaves as per the requirements. The unit tests are code that checks if the implementation creates functionality that meets the requirements. This is why getting the requirements right is important. It has enormous impact on the implementation and the unit testing if the requirements are not complete or not right.
 
 One important character of requirements is that each requirements is assigned a unique ID. In the 7 requirements, I have used nomenclature of software module name, post fixed by a `req`. This makes it easy for each requirements to be identified. In more complicated nomenclature, version and status of the requirements are also attached to its ID. I think it over complicates the naming structure and does not add much value.
 
@@ -76,7 +76,7 @@ One important character of requirements is that each requirements is assigned a 
 
 I am not going to go too deep with version control. Yet, it is such an important subject that I want to write a chapter just to remind you of it.
 
-The unit test cases you create needs to be version controlled. It is an integral part of creating your software. It is as important as the C code you write, so it needs to be managed using a version control management system. There are plenty of system available, just choose one that you feel comfortable, just make sure you use one. 
+The unit testing cases you create needs to be version controlled. It is an integral part of creating your software. It is as important as the C code you write, so it needs to be managed using a version control management system. There are plenty of system available, just choose one that you feel comfortable, just make sure you use one. 
 
 ##Coverage
 
@@ -112,7 +112,7 @@ One of the purposes for branch coverage is to check if your test inputs are corr
 
 ### Functional coverage
 
-Functional coverage is a measure of the unit test covers the functional requirements of the software module. If the coverage is less than 100%, it shows that the unit test does not cover all the functions to be achieve by the software module. Only functional requirements are counted for functional coverage. Non-functional requirements are outside the scope of this measurement. They should be covered through other mechanism such as integration testing or code inspection.
+Functional coverage is a measure of the unit test covers the functional requirements of the software module. If the coverage is less than 100%, it shows that the unit testing does not cover all the functions to be achieve by the software module. Only functional requirements are counted for functional coverage. Non-functional requirements are outside the scope of this measurement. They should be covered through other mechanism such as integration testing or code inspection.
 
 The functional coverage is measured by dividing the number of requirements that are covered by the unit tests by the total number of requirements. From this equation, it is clear that a coverage of less than 100% shows that not all the functionality are tested.
 
