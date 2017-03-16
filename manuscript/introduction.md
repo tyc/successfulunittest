@@ -46,12 +46,8 @@ This book is a guide. It is not a text book that shows everything about unit tes
 Finally, before we get into the book proper, I want to thank you for taking the time to learn about unit testing. I hope that you have got what are seeking from this book and can spread the word about the importance of early automated testing. 
 
 ## Going Forward
-
-There is a companion website, it is located at 
-
-	www.successfulunittest.com
 	
 If you want to provide feedback and suggestion. You can leave a comment on the website, or alternatively, please send an email to 
 
-	tehn.yit.chin@successfulunittest.com
+	tehn.yit.chin@gmail.com
 	
